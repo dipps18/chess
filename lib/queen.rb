@@ -1,9 +1,20 @@
 class Queen
   attr_accessor :pos, :sym
-  def initialize(color, sym)
+  def initialize(color)
 		@sym = sym
-		@pos = color == 'black' ? [0, 3] : [7, 3]
+		@color = color
+		if color == 'black'
+			@sym = " \u2655 "
+			@pos = [0, 3]
+		else
+			@sym = " \u265B "
+			@pos = [7, 3]
+		end
 		@moves = nil
+	end
+
+	def init_next_moves(board, color)
+		@next_moves = set_moves(board, color)
 	end
  
 	# def set_moves(board, pos, pieces)
