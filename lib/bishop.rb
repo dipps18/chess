@@ -5,13 +5,7 @@ class Bishop
   def initialize(color)
 		@@count -= 2 if @@count == 2
     @color = color
-    if color == 'black'
-			@sym = " \u2657 "
-			coordinates = [[0, 2], [0, 5]]
-		else
-			@sym = " \u265D "
-			coordinates = [[7, 2], [7, 5]]
-		end
+		coordinates, @sym = color == 'black' ? [[[0, 2], [0, 7]], " \u2657 "] : [[[7, 2], [7, 5]], " \u265D "]
 		@pos = coordinates[@@count]
     @@count += 1
 		@sym = sym

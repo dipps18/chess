@@ -1,4 +1,4 @@
-require_relative '../lib/board.rb'
+require_relative '../lib/board'
 
 describe Board do
   describe '#initialize' do
@@ -158,6 +158,15 @@ describe Board do
         color = 'black'
         expect(board.diag_bottom_left(position, color)).to eql([[4, 1], [3, 2], [2, 3]])
       end
+    end
+  end
+
+  describe '#top' do
+    subject(:board) { described_class.new }
+    it 'should return [[6,0], [5, 0], [4, 0]] when position is [3, 0] ' do
+      position = [3, 0]
+      color = 'black'
+      expect(board.top(position, color)).to eql([[4, 0], [5, 0], [6, 0]])
     end
   end
 end

@@ -6,13 +6,13 @@ require_relative 'king.rb'
 require_relative 'queen.rb'
 require_relative 'rook.rb'
 class Board
-	attr_reader :white, :black
+	attr_reader :white, :black, :cells
   def initialize
 		@WHITE_SYMBOLS = [" \u265F ", " \u265E ", " \u265B ", " \u265A ", " \u265C ", " \u265D "]
 		@BLACK_SYMBOLS = [" \u2659 ", " \u2658 ", " \u2655 ", " \u2654 ", " \u2656 ", " \u2657 "]
     @white = create_pieces('white')
     @black = create_pieces('black')
-		# condition = proc{ |pieces| pieces.kind_of?(Array) ? pieces.each{ |piece| piece.init_next_moves(self, piece.color) } : pieces.init_next_moves(self, pieces.color) }
+		# condition = proc{ |pieces| pieces.kind_of?(Array) ? pieces.each{ |piece| piece.init_next_valid_cells(self, piece.color) } : pieces.init_next_valid_cells(self, pieces.color) }
 		# @white.each{ |key, value| condition.call(value) }
 		# @black.each{ |key, value| condition.call(value) }
     @cells = Array.new(8){ Array.new(8) }
@@ -50,137 +50,84 @@ class Board
   # def check?(color)
   #   opp_pieces = color == 'white' ? @black : @white
   #   king_pos = color == 'white' ? @white[:king_white].position : @black[:king_black].position
-  #   opp_pieces.any?{|opp_piece| opp_piece.next_moves.any?{|move| move == king_pos}}
+  #   opp_pieces.any?{|opp_piece| opp_piece.next_valid_cells.any?{|move| move == king_pos}}
   # end
 
 	def out_of_bounds?(next_pos)
 		next_pos[0] > 7 || next_pos[1] > 7 || next_pos[0] < 0 || next_pos[1] < 0		
 	end
 
-	def block?(color, next_pos)
+
+	def piece_in_cell?(color, pos)
 		pieces = color == 'black' ? @BLACK_SYMBOLS : @WHITE_SYMBOLS
-		pieces.include?(@cells[next_pos[0]][next_pos[1]])
+		pieces.include?(@cells[pos[0]][pos[1]])
 	end
+
+  def coordinates(position)
+    [(position[1].to_i - 8).abs, position[0].ord - 'a'.ord]
+  end
 
 	def cell_empty?(position)
 		return true if position == nil
 		@cells[position[0]][position[1]] == "   "
 	end
+
+	def valid_cells(next_pos, color, offset, index = nil, cur_pos = nil)
+		cells = []
+		loop do
+			break if out_of_bounds?(next_pos) || piece_in_cell?(color, next_pos) || !cell_empty?(cur_pos)
+      cells.push(next_pos.dup)
+			cur_pos = cells[-1]
+			index == nil ? next_pos = [cur_pos[0] + offset[0], cur_pos[1] + offset[1]] : next_pos[index] = cur_pos[index] + offset
+		end
+		cells
+	end
 	
   def diag_top_right(pos, color)
 		offset = color == 'black' ? [1, -1] : [-1, 1]
-		moves = []
 		next_pos = [pos[0] + offset[0], pos[1] + offset[1]]
-		cur_pos = nil
-		loop do
-			break if out_of_bounds?(next_pos) || block?(color, next_pos) || !cell_empty?(cur_pos)
-			moves.push(next_pos)
-			cur_pos = moves[-1]
-			next_pos = [cur_pos[0] + offset[0], cur_pos[1] + offset[1]]
-		end
-		moves
+		valid_cells(next_pos, color, offset)
 	end
  
 	def diag_top_left(pos, color)
 	  offset = color == 'black' ? [1, 1] : [-1, -1]
-		moves = []
 		next_pos = [pos[0] + offset[0], pos[1] + offset[1]]
-		cur_pos = nil
-		loop do
-			break if out_of_bounds?(next_pos) || block?(color, next_pos) || !cell_empty?(cur_pos)
-      
-      moves << next_pos
-			cur_pos = moves[-1]
-			next_pos = [cur_pos[0] + offset[0], cur_pos[1] + offset[1]]
-		end
-		moves
+		valid_cells(next_pos, color, offset)
 	end
  
 	def diag_bottom_left(pos, color)
 	  offset = color == 'black' ? [-1, 1] : [1, -1]
-		moves = []
 		next_pos = [pos[0] + offset[0], pos[1] + offset[1]]
-		cur_pos = nil
-		loop do
-			break if  out_of_bounds?(next_pos)|| block?(color, next_pos) || !cell_empty?(cur_pos)
-      
-			moves << next_pos
-			cur_pos = moves[-1]
-			next_pos = [cur_pos[0] + offset[0], cur_pos[1] + offset[1]]
-		end
-		moves
+		valid_cells(next_pos, color, offset)
 	end
 
 	def diag_bottom_right(pos, color)
 	  offset = color == 'black' ? [-1, -1] : [1, 1]
-		moves = []
 		next_pos = [pos[0] + offset, pos[1] - offset]
-		cur_pos = nil 
-		loop do
-			break if out_of_bounds(next_pos) || block?(color, next_pos) || !cell_empty?(cur_pos)
-      
-			moves.push(next_pos)
-			cur_pos = moves[-1]
-			next_pos = [cur_pos[0] + offset[0], cur_pos[1] + offset[1]]
-		end
-		moves
+		valid_cells(next_pos, color, offset)
 	end
  
 	def left(pos, color)
     offset = color == 'black' ? 1 : -1
-		moves = []
 		next_pos = [pos[0], pos[1] + offset]
-		cur_pos = nil
-		loop do
-			break if out_of_bounds?(next_pos) || block?(color, next_pos) || !cell_empty?(cur_pos)
-
-			moves.push(next_pos)
-			cur_pos = moves[-1]
-			next_pos = [cur_pos[0], cur_pos[1] + offset]
-		end
-		moves
+		valid_cells(next_pos, color, offset, 1)
   end
 
   def right(pos, color)
     offset = color == 'black' ? -1 : 1
-		moves = []
 		next_pos = [pos[0], pos[1] + offset]
-		loop do
-			break if out_of_bounds?(next_pos) || block?(color, next_pos) || !cell_empty?(cur_pos)
-
-			moves.push(next_pos)
-			cur_pos = moves[-1]
-			next_pos[1] = [cur_pos[1] + offset]
-		end
+		valid_cells(next_pos, color, offset, 1)
   end
 
   def top(pos, color)
     offset = color == 'black' ? 1 : -1
-		moves = []
 		next_pos = [pos[0] + offset, pos[1]]
-		loop do
-			break if out_of_bounds?(next_pos) || block?(color, next_pos) || !cell_empty?(cur_pos)
-
-			moves.push(next_pos)
-			cur_pos = moves[-1]
-			next_pos[0] = cur_pos[0] + offset
-		end
-		moves
+		valid_cells(next_pos, color, offset, 0)
   end
 
   def bottom(pos, color)
     offset = color == 'black' ?  -1 : 1 
-		moves = []
-		next_pos = [pos[0] - 1, pos[1]]
-		loop do
-			break if out_of_bounds?(next_pos) || block?(color, next_pos) || !cell_empty?(cur_pos)
-
-			moves.push(next_pos)
-			cur_pos = moves[-1]
-			next_pos = cur_pos[0] + offset
-		end
-		moves
+		next_pos = [pos[0] + offset, pos[1]]
+		valid_cells(next_pos, color, offset, 0)
   end
 end
-
-# board = Board.new

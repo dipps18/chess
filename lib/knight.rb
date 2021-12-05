@@ -5,16 +5,9 @@ class Knight
     @@count -= 2 if @@count == 2
     @color = color
     @sym = sym 
-		if color == 'black' 
-      coordinates = [[0, 1], [0, 6]]
-      @sym =  " \u2658 " 
-    else 
-      coordinates = [[7, 1], [7, 6]]
-      @sym = " \u265E "
-    end
+		coordinates, @sym = color == 'black' ? [[[0, 1], [0, 6]], " \u2658 "] : [[[7, 1], [7, 6]], " \u265E "]
 		@pos = coordinates[@@count]
     @@count += 1
-    @next_moves = nil
 	end
 
   def init_next_moves(board, color)
