@@ -169,4 +169,40 @@ describe Board do
       expect(board.top(position, color)).to eql([[4, 0], [5, 0], [6, 0]])
     end
   end
+
+  describe '#destination' do
+    subject(:board) { described_class.new }
+    context 'When input is valid' do
+      it 'should return a3 when input is a3 and color is white' do
+        input = 'Na3'
+        expect(board.destination(input, 'white')).to eq([5, 0])
+      end
+
+      it 'should return c6 when input is Qxc6 and color is white' do
+        input = 'Qxc6'
+        board.instance_eval('@cells[2][2] = " \u265F "')
+        expect(board.destination(input, 'white')).to eql([2, 2])
+      end
+
+    end
+
+    context 'When input is invalid' do
+      it 'should return nil when input is "a1" and color is white' do
+        input = 'Ka1'
+        expect(board.destination(input, 'white')).to eq(nil)
+      end
+
+      it 'should return nil when input is Qxc6 and color is black' do
+        input = 'Qxc6'
+        board.instance_eval('@cells[2][2] = " \u265F "')
+        expect(board.destination(input, 'black')).to eql(nil)
+      end
+
+      it 'should return nil when input is Qc6 and piece is present on c6' do
+        input = 'Qc6'
+        board.instance_eval('@cells[2][2] = " \u265F "')
+        expect(board.destination(input, 'white')).to eql(nil)
+      end
+    end
+  end
 end

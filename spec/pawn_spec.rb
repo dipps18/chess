@@ -18,7 +18,7 @@ describe Pawn do
 
       it 'should return [] when no position is available' do
         board.instance_eval('@cells[2][2] = " \u2657 "')
-        expect(pawn_moves.set_moves(board)).to eql([])
+        expect(pawn_moves.set_moves(board)).to eql(nil)
       end
 
       it 'should return [2][3] when enpassant is possible' do
@@ -45,7 +45,7 @@ describe Pawn do
 
       it 'should return [] when no position is available due to blocked piece' do
         board.instance_eval('@cells[5][0] = " \u2657 "')
-        expect(pawn_moves.set_moves(board)).to eql([])
+        expect(pawn_moves.set_moves(board)).to eql(nil)
       end
 
       it 'should return [5, 0] when position [6, 0] is unavailable due to blocked piece' do
@@ -70,25 +70,25 @@ describe Pawn do
       it 'should return [2, 0] when a1 is played' do
         input = 'a3'
         destination = [2, 0]
-        expect(Pawn.origin(input, destination, pawns)).to eql([1,0])
+        expect(Pawn.origin(input, destination, board.black)).to eql([1,0])
       end
 
       it 'should return [2, 1] ' do
         input = 'axb3'
         destination = [2, 1]
-        expect(Pawn.origin(input, destination, pawns)).to eql([1, 0])
+        expect(Pawn.origin(input, destination, board.black)).to eql([1, 0])
       end
     end
 
     context 'When origin is invalid' do
-
       before do
         pawns.each{|pawn| pawn.init_next_moves(board)}
       end
+
       it 'should return nil' do
         input = 'a1'
         destination = [0, 0]
-        expect(Pawn.origin(input, destination, pawns)).to eql(nil)
+        expect(Pawn.origin(input, destination, board.black)).to eql(nil)
       end
     end
   end

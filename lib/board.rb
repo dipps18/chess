@@ -24,7 +24,7 @@ class Board
      :bishops => Array.new(2){ Bishop.new(color) },
      :knights => Array.new(2){ Knight.new(color) },
      :rooks => Array.new(2){ Rook.new(color) },
-     :queen => Queen.new(color),
+     :queen => Array.new(1){ Queen.new(color) },
 		 :king => King.new(color) }
 	end
 
@@ -57,6 +57,27 @@ class Board
 		next_pos[0] > 7 || next_pos[1] > 7 || next_pos[0] < 0 || next_pos[1] < 0		
 	end
 
+	def self.column(input)
+		input.ord - 'a'.ord
+	end
+	
+	def self.row(input)
+		(input.to_i - 8).abs
+	end
+
+	def self.capture?(input)
+    input.match?('x')
+  end
+
+	def destination(input, opp_color)
+    destination = input[-2..-1]
+    return nil unless destination.match?(/[a-h][1-8]/)
+
+    destination = coordinates(destination)
+    return nil if Board.capture?(input) && !piece_in_cell?(opp_color, destination)
+    return nil if !Board.capture?(input) && !cell_empty?(destination)
+    return destination
+  end
 
 	def piece_in_cell?(color, pos)
 		pieces = color == 'black' ? @BLACK_SYMBOLS : @WHITE_SYMBOLS
@@ -64,7 +85,7 @@ class Board
 	end
 
   def coordinates(position)
-    [(position[1].to_i - 8).abs, position[0].ord - 'a'.ord]
+    [Board.row(position[1]), Board.column(position[0])]
   end
 
 	def cell_empty?(position)
@@ -103,7 +124,7 @@ class Board
 
 	def diag_bottom_right(pos, color)
 	  offset = color == 'black' ? [-1, -1] : [1, 1]
-		next_pos = [pos[0] + offset, pos[1] - offset]
+		next_pos = [pos[0] + offset[0], pos[1] + offset[1]]
 		valid_cells(next_pos, color, offset)
 	end
  

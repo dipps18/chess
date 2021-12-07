@@ -48,17 +48,13 @@ class Pawn
       diagonal = [@pos[0] + offset_y, @pos[1] + offset_x]
       moves << diagonal if !board.out_of_bounds?(diagonal) && (board.piece_in_cell?(opp_color, diagonal) || enpassant?(diagonal, opp_pawns))
     end
-    moves
+    moves.empty? ? nil : moves	
   end
 
-  # def self.valid_move?(input, pawns, destination)
-  #   origin = origin(destination, pawns)
-  #   origin ? true : false
-  # end
 
-
-  def self.origin(input, destination, pawns)
-    condition = Game.capture?(input) ? proc{|pawn| pawn.pos == [destination[0] - 1, input[0].ord - 97] } : proc{ |pawn| pawn.next_moves.include?(destination) }
+  def self.origin(input, destination, pieces)
+    pawns = pieces[:pawns]
+    condition = Board.capture?(input) ? proc{|pawn| pawn.pos == [destination[0] - 1, input[0].ord - 97] } : proc{ |pawn| pawn.next_moves.include?(destination) }
     pawns = pawns.select{ |pawn| condition.call(pawn) }
     return pawns[0].pos unless pawns.length > 1 || pawns.length == 0
   end
