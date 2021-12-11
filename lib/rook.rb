@@ -1,5 +1,7 @@
 class Rook
   attr_accessor :pos, :sym
+	attr_reader :next_moves
+
   @@count = 0
 	def initialize(color, pos = nil)
     @@count -= 2 if @@count == 2
@@ -8,16 +10,11 @@ class Rook
 		@pos = pos ? pos : coordinates[@@count]
     @@count += 1
 	end
-
-	def init_next_moves(board, color)
-		@next_moves = set_moves(board, color)
-	end
  
-	def set_moves(board, color)
-		moves = [board.left(@pos, color), board.right(@pos, color),
-		 board.bottom(@pos, color), board.top(@pos, color)].flatten(1)
-
-		moves.empty? ? nil : moves	
+	def set_moves(board)
+		moves = [board.left(@pos, @color), board.right(@pos, @color),
+		 				 board.bottom(@pos, @color), board.top(@pos, @color)].flatten(1)
+		moves	
 	end
 
 	def self.origin(input, destination, pieces)

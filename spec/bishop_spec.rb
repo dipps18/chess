@@ -42,6 +42,7 @@ describe Bishop do
     end
 
     context 'When invalid input is given' do
+      
     end
   end
 end

@@ -1,5 +1,6 @@
 class Knight
   attr_accessor :pos, :sym
+  attr_reader :next_moves
   @@count = 0
   def initialize(color, pos = nil)
     @@count -= 2 if @@count == 2
@@ -10,8 +11,8 @@ class Knight
     @@count += 1
 	end
 
-  def init_next_moves(board, color)
-		@next_moves = set_moves(board, color)
+  def init_next_moves(board)
+		@next_moves = set_moves(board)
 	end
 
   def set_moves(board)
@@ -22,7 +23,7 @@ class Knight
       next_move = [@pos[0] + increment[0], @pos[1] + increment[1]]
       moves.push(next_move) unless board.out_of_bounds?(next_move) || board.piece_in_cell?(@color, next_move)
     end
-    moves.empty? ? nil : moves	
+    moves	
   end
 
   def self.origin(input, destination, pieces)
@@ -35,7 +36,7 @@ class Knight
 			end
 			return knights.select{ |knight| condition.call(knight) }[0].pos if input[1].match?(/[a-h1-8]/)
 		end
-		return knights[0].pos
+		knights[0] ? knights[0].pos : nil
   end
  
 	def self.valid_move(destination)

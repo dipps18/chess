@@ -183,7 +183,6 @@ describe Board do
         board.instance_eval('@cells[2][2] = " \u265F "')
         expect(board.destination(input, 'white')).to eql([2, 2])
       end
-
     end
 
     context 'When input is invalid' do
@@ -204,5 +203,30 @@ describe Board do
         expect(board.destination(input, 'white')).to eql(nil)
       end
     end
+  end
+
+  describe '#check?' do
+    subject(:board) {described_class.new}
+    let(:bishop) {Bishop.new('white', [3, 7])}
+    context 'When black king is in check' do
+      it 'should return true when bishop targets king' do
+        board.instance_eval('@cells[1][5] = "   "')
+        board.white[:bishops].push(bishop)
+        board.white.each{|key, value| value.kind_of?(Array) ? value.each{ |piece| piece.init_next_moves(board) } : value.init_next_moves(board)}
+        expect(board.check?('black')).to eql(true)
+      end
+    end
+  end
+
+  describe '#update_position' do
+    let(:board) { described_class.new }
+    it 'should change position of piece' do
+      destination = [2, 0]
+      origin = [1, 0]
+      color = 'black'
+      board.update_position(destination, origin, color)
+      expect(board.black[:pawns][0].pos).to eq(destination)
+    end
+
   end
 end

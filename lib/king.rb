@@ -1,5 +1,7 @@
 class King
-  attr_accessor :pos, :sym
+  attr_accessor :sym
+	attr_reader :next_moves, :pos
+
   def initialize(color)
 		@color = color
 		@pos, @sym = color == 'black' ? [[0, 4], " \u2654 "] : [[7, 4], " \u265A "]
@@ -17,7 +19,7 @@ class King
 			next_move = [@pos[0] + increment[0], @pos[1] + increment[1]]
 			moves.push(next_move) unless board.out_of_bounds?(next_move) || board.piece_in_cell?(@color, next_move)
 		end
-		moves.empty? ? nil : moves	
+		moves	
 	end
 	
 end

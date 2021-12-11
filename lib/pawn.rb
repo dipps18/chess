@@ -6,7 +6,7 @@
 # require_relative 'rook.rb'
 
 class Pawn
-  attr_accessor :pos, :sym
+  attr_accessor :sym, :pos
   attr_reader :color, :enpossible, :next_moves
   @@count = 0
 
@@ -48,7 +48,7 @@ class Pawn
       diagonal = [@pos[0] + offset_y, @pos[1] + offset_x]
       moves << diagonal if !board.out_of_bounds?(diagonal) && (board.piece_in_cell?(opp_color, diagonal) || enpassant?(diagonal, opp_pawns))
     end
-    moves.empty? ? nil : moves	
+    moves
   end
 
 
@@ -56,6 +56,9 @@ class Pawn
     pawns = pieces[:pawns]
     condition = Board.capture?(input) ? proc{|pawn| pawn.pos == [destination[0] - 1, input[0].ord - 97] } : proc{ |pawn| pawn.next_moves.include?(destination) }
     pawns = pawns.select{ |pawn| condition.call(pawn) }
-    return pawns[0].pos unless pawns.length > 1 || pawns.length == 0
+    if pawns.length != 0
+      @enpossible = true if pawns[0].pos[0] - destination[0] == 2 
+      return pawns[0].pos 
+    end
   end
 end

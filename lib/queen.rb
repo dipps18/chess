@@ -1,5 +1,6 @@
 class Queen
   attr_accessor :pos, :sym
+	attr_reader :next_moves
   def initialize(color, pos = nil)
 		@sym = sym
 		@color = color
@@ -7,8 +8,8 @@ class Queen
 		@pos = pos if pos
 	end
 
-	def init_next_moves(board, color)
-		@next_moves = set_moves(board, color)
+	def init_next_moves(board)
+		@next_moves = set_moves(board)
 	end
 
 	def self.origin(input, destination, pieces)
@@ -21,14 +22,14 @@ class Queen
 			end
 			return queens.select{ |queen| condition.call(queen) }[0].pos if input[1].match?(/[a-h1-8]/)
 		end
-		return queen[0].pos if queen[0].next_moves.include?(destination)
+		return queen[0] ? queen[0].pos : nil
   end
  
-	def set_moves(board, pos, pieces)
-		moves = [board.left(pos, pieces), board.right(pos, pieces),
-		 				 board.bottom(pos, pieces), board.top(pos, pieces),
-						 board.diag_top_right(pos, pieces), board.diag_top_left(pos, pieces),
-		         board.diag_bottom_right(pos, pieces), board.diag_bottom_left(pos, pieces)].flatten(1)
-		moves.empty? ? nil : moves	
+	def set_moves(board)
+		moves = [board.left(@pos, @color), board.right(@pos, @color),
+		 				 board.bottom(@pos, @color), board.top(@pos, @color),
+						 board.diag_top_right(@pos, @color), board.diag_top_left(@pos, @color),
+		         board.diag_bottom_right(@pos, @color), board.diag_bottom_left(@pos, @color)].flatten(1)
+		moves	
 	end
 end

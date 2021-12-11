@@ -18,7 +18,7 @@ describe Pawn do
 
       it 'should return [] when no position is available' do
         board.instance_eval('@cells[2][2] = " \u2657 "')
-        expect(pawn_moves.set_moves(board)).to eql(nil)
+        expect(pawn_moves.set_moves(board)).to eql([])
       end
 
       it 'should return [2][3] when enpassant is possible' do
@@ -45,7 +45,7 @@ describe Pawn do
 
       it 'should return [] when no position is available due to blocked piece' do
         board.instance_eval('@cells[5][0] = " \u2657 "')
-        expect(pawn_moves.set_moves(board)).to eql(nil)
+        expect(pawn_moves.set_moves(board)).to eql([])
       end
 
       it 'should return [5, 0] when position [6, 0] is unavailable due to blocked piece' do
@@ -92,4 +92,5 @@ describe Pawn do
       end
     end
   end
+
 end

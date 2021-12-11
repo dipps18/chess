@@ -7,7 +7,7 @@ describe King do
     let(:board) { Board.new }
 
     it 'should return nil when no position available' do
-      expect(king.set_moves(board)).to eql(nil)
+      expect(king.set_moves(board)).to eql([])
     end
   end
 end

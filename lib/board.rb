@@ -12,7 +12,7 @@ class Board
 		@BLACK_SYMBOLS = [" \u2659 ", " \u2658 ", " \u2655 ", " \u2654 ", " \u2656 ", " \u2657 "]
     @white = create_pieces('white')
     @black = create_pieces('black')
-		# condition = proc{ |pieces| pieces.kind_of?(Array) ? pieces.each{ |piece| piece.init_next_valid_cells(self, piece.color) } : pieces.init_next_valid_cells(self, pieces.color) }
+		# condition = proc{ |pieces| pieces.each{ |piece| piece.init_next_valid_cells(self, piece.color) }}
 		# @white.each{ |key, value| condition.call(value) }
 		# @black.each{ |key, value| condition.call(value) }
     @cells = Array.new(8){ Array.new(8) }
@@ -25,13 +25,13 @@ class Board
      :knights => Array.new(2){ Knight.new(color) },
      :rooks => Array.new(2){ Rook.new(color) },
      :queen => Array.new(1){ Queen.new(color) },
-		 :king => King.new(color) }
+		 :king => Array.new(1){ King.new(color) }}
 	end
 
   def init_cells
     @cells.map!{|row| row.map!{ |cell| cell = "   " if cell == nil } }
-    @white.each{ |key, value| value.kind_of?(Array) ? value.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym } : @cells[value.pos[0]][value.pos[1]] = value.sym }
-    @black.each{ |key, value| value.kind_of?(Array) ? value.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym } : @cells[value.pos[0]][value.pos[1]] = value.sym }
+    @white.each{ |key, value| value.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym } }
+    @black.each{ |key, value| value.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym } }
   end
 
   def display_board
@@ -47,11 +47,35 @@ class Board
     end
   end
 
-  # def check?(color)
-  #   opp_pieces = color == 'white' ? @black : @white
-  #   king_pos = color == 'white' ? @white[:king_white].position : @black[:king_black].position
-  #   opp_pieces.any?{|opp_piece| opp_piece.next_valid_cells.any?{|move| move == king_pos}}
-  # end
+	def valid_move?(destination, origin, piece, color)
+		piece.pos = destination
+		valid_move = check?(color) ? false : true
+		piece[0].pos = origin
+		valid_move
+	end
+
+	def update_next_moves(piece)
+		piece.next_moves = piece.set_moves(self)
+	end
+
+	def update_position(destination, origin, color)
+    pieces = color == 'white' ? @white : @black
+		piece = pieces.map{ |key, value| value.select{ |piece| piece.pos == origin } }[0]
+		piece[0].pos = destination
+	end
+
+  def check?(color)
+    opp_pieces = color == 'white' ? @black : @white
+    king_pos = color == 'white' ? @white[:king][0].pos : @black[:king][0].pos
+		opp_pieces.any? do |key, pieces|
+			pieces.any?{ |piece| piece.next_moves.include?(king_pos) }
+		end
+  end
+
+	def checkmate?(color)
+		opp_pieces = color == 'white' ? @black : @white
+
+	end
 
 	def out_of_bounds?(next_pos)
 		next_pos[0] > 7 || next_pos[1] > 7 || next_pos[0] < 0 || next_pos[1] < 0		
