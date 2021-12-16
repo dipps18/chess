@@ -12,6 +12,7 @@ class Board
 		@BLACK_SYMBOLS = [" \u2659 ", " \u2658 ", " \u2655 ", " \u2654 ", " \u2656 ", " \u2657 "]
     @white = create_pieces('white')
     @black = create_pieces('black')
+		@pieces = [@white.values, @black.values].flatten
 		# condition = proc{ |pieces| pieces.each{ |piece| piece.init_next_valid_cells(self, piece.color) }}
 		# @white.each{ |key, value| condition.call(value) }
 		# @black.each{ |key, value| condition.call(value) }
@@ -30,8 +31,8 @@ class Board
 
   def init_cells
     @cells.map!{|row| row.map!{ |cell| cell = "   " if cell == nil } }
-    @white.each{ |key, value| value.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym } }
-    @black.each{ |key, value| value.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym } }
+    @white.values.flatten.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym }
+    @black.values.flatten.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym }
   end
 
   def display_board
@@ -49,13 +50,29 @@ class Board
 
 	def valid_move?(destination, origin, piece, color)
 		piece.pos = destination
+		temp = @cells[destination[0]][destination[1]]
+		@cells[destination[0]][destination[1]] = piece.sym
+		@cells[origin[0]][origin[1]] = "   "
+		update_all_moves
 		valid_move = check?(color) ? false : true
-		piece[0].pos = origin
+		piece.pos = origin
+		@cells[origin[0]][origin[1]] = piece.sym
+		@cells[destination[0]][destination[1]] = temp
+		update_all_moves
 		valid_move
 	end
 
-	def update_next_moves(piece)
-		piece.next_moves = piece.set_moves(self)
+	def update_all_moves #updates next_moves for each piece, also includes invalid moves
+		@white.values.flatten.each{ |piece| piece.next_moves = piece.all_moves(self) }
+		@black.values.flatten.each{ |piece| piece.next_moves = piece.all_moves(self) }
+	end
+
+	def update_next_moves #updates next moves for each piece with only valid moves
+		# @pieces.each{|piece| p piece; p piece.all_moves(self).select{|move| valid_move?(move, piece.pos, piece, piece.color)} }
+		condition = proc{ |piece| piece.next_moves = piece.all_moves(self).select{ |move| valid_move?(move, piece.pos, piece, piece.color)} }
+		@white.values.flatten.each{ |piece| condition.call(piece) }
+		@black.values.flatten.each{ |piece| condition.call(piece) }
+		# @white.values.flatten.each{|piece| p piece.next_moves}
 	end
 
 	def update_position(destination, origin, color)
@@ -65,16 +82,14 @@ class Board
 	end
 
   def check?(color)
-    opp_pieces = color == 'white' ? @black : @white
-    king_pos = color == 'white' ? @white[:king][0].pos : @black[:king][0].pos
-		opp_pieces.any? do |key, pieces|
-			pieces.any?{ |piece| piece.next_moves.include?(king_pos) }
-		end
+		king_pos, opp_pieces = color == 'white' ? [@white[:king][0].pos, @black.values.flatten] : [@black[:king][0].pos, @white.values.flatten]
+		opp_pieces.any?{ |piece| piece if piece.next_moves.include?(king_pos) }
   end
 
 	def checkmate?(color)
-		opp_pieces = color == 'white' ? @black : @white
-
+		pieces = color == 'black' ? @black : @white
+		#pieces.values.flatten.none?{ |piece|  piece.next_moves.any?{ |move| p valid_move?(move, piece.pos, piece, piece.color) } } 
+		pieces.values.flatten.none?{ |piece| piece.next_moves.any?{ |move| valid_move?(move, piece.pos, piece, piece.color) } }
 	end
 
 	def out_of_bounds?(next_pos)
@@ -88,6 +103,10 @@ class Board
 	def self.row(input)
 		(input.to_i - 8).abs
 	end
+
+	def coordinates(position)
+    [Board.row(position[1]), Board.column(position[0])]
+  end
 
 	def self.capture?(input)
     input.match?('x')
@@ -107,10 +126,6 @@ class Board
 		pieces = color == 'black' ? @BLACK_SYMBOLS : @WHITE_SYMBOLS
 		pieces.include?(@cells[pos[0]][pos[1]])
 	end
-
-  def coordinates(position)
-    [Board.row(position[1]), Board.column(position[0])]
-  end
 
 	def cell_empty?(position)
 		return true if position == nil

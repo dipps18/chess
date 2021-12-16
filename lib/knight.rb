@@ -1,6 +1,6 @@
 class Knight
-  attr_accessor :pos, :sym
-  attr_reader :next_moves
+  attr_accessor :pos, :sym, :next_moves
+  attr_reader :color
   @@count = 0
   def initialize(color, pos = nil)
     @@count -= 2 if @@count == 2
@@ -15,7 +15,7 @@ class Knight
 		@next_moves = set_moves(board)
 	end
 
-  def set_moves(board)
+  def all_moves(board)
     moves = []
     move_increments = [[2, 1], [-2, 1], [2, -1],
                         [-2, -1]].map { |increment| increment.permutation.to_a }.flatten(1)

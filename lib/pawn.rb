@@ -6,8 +6,8 @@
 # require_relative 'rook.rb'
 
 class Pawn
-  attr_accessor :sym, :pos
-  attr_reader :color, :enpossible, :next_moves
+  attr_accessor :sym, :pos, :next_moves
+  attr_reader :color, :enpossible
   @@count = 0
 
   def initialize(color)
@@ -29,15 +29,15 @@ class Pawn
     @enpossible = false
   end
 
-	def init_next_moves(board)
-    @next_moves = set_moves(board)
-	end
-
   def enpassant?(position, pawns)
     pawns.any?{ |pawn| pawn.enpossible if pawn.pos == position }
   end
 
-  def set_moves(board)
+  def valid_moves(moves)
+    moves.select{|move| valid_move?(move, @pos, self, @color) }
+  end
+
+  def all_moves(board) #returns all moves which also include invalid moves like allowing a pinned piece to move putting the king in check
     moves = []
     origin, offset_y, opp_pawns, opp_color = (@color == 'black') ? [1, 1, board.white[:pawns], 'white'] : [6, -1, board.black[:pawns], 'black']
     if board.cell_empty?([@pos[0] + offset_y, @pos[1]])

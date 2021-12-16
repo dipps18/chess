@@ -1,6 +1,6 @@
 class Queen
-  attr_accessor :pos, :sym
-	attr_reader :next_moves
+  attr_accessor :pos, :sym, :next_moves
+	attr_reader :color
   def initialize(color, pos = nil)
 		@sym = sym
 		@color = color
@@ -25,7 +25,7 @@ class Queen
 		return queen[0] ? queen[0].pos : nil
   end
  
-	def set_moves(board)
+	def all_moves(board)
 		moves = [board.left(@pos, @color), board.right(@pos, @color),
 		 				 board.bottom(@pos, @color), board.top(@pos, @color),
 						 board.diag_top_right(@pos, @color), board.diag_top_left(@pos, @color),

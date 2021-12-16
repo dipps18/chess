@@ -1,7 +1,7 @@
 class Bishop
   @@count = 0
-	attr_accessor :pos, :sym
-	attr_reader :next_moves
+	attr_accessor :pos, :sym, :next_moves
+	attr_reader :color
 	
   def initialize(color, pos = nil)
 		@@count -= 2 if @@count == 2
@@ -39,7 +39,7 @@ class Bishop
 		return bishops[0].pos if bishops[0].next_moves.include?(destination)
   end
  
-	def moves(board)
+	def all_moves(board)
 		[board.diag_top_right(@pos, @color), board.diag_top_left(@pos, @color),
 		 board.diag_bottom_right(@pos, @color), board.diag_bottom_left(@pos, @color)].flatten(1)
 	end

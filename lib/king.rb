@@ -1,17 +1,14 @@
 class King
-  attr_accessor :sym
-	attr_reader :next_moves, :pos
+  attr_accessor :sym, :next_moves, :pos
+	attr_reader :color
 
   def initialize(color)
 		@color = color
 		@pos, @sym = color == 'black' ? [[0, 4], " \u2654 "] : [[7, 4], " \u265A "]
 	end
 
-	def init_next_moves(board)
-		@next_moves = set_moves(board)
-	end
 
-	def set_moves(board)
+	def all_moves(board)
 		moves = []
 		increments = [[1,-1], [1, 1], [-1, -1],
 								  [1, 0], [-1, 0]].map{|increment_set| increment_set.permutation.to_a}.flatten(1)

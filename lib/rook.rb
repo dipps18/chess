@@ -1,6 +1,6 @@
 class Rook
-  attr_accessor :pos, :sym
-	attr_reader :next_moves
+  attr_accessor :pos, :sym, :next_moves
+	attr_reader :color
 
   @@count = 0
 	def initialize(color, pos = nil)
@@ -11,7 +11,7 @@ class Rook
     @@count += 1
 	end
  
-	def set_moves(board)
+	def all_moves(board)
 		moves = [board.left(@pos, @color), board.right(@pos, @color),
 		 				 board.bottom(@pos, @color), board.top(@pos, @color)].flatten(1)
 		moves	

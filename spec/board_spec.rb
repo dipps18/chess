@@ -1,6 +1,7 @@
 require_relative '../lib/board'
 
 describe Board do
+  let(:board) { described_class.new }
   describe '#initialize' do
     subject(:board_initialize) { described_class.new }
 
@@ -74,7 +75,6 @@ describe Board do
   end
 
   describe '#diag_top_left' do
-    subject(:board) { described_class.new }
     context 'When piece is white' do
       it 'should return [] when no moves are available' do
         position = [5, 0]
@@ -118,7 +118,6 @@ describe Board do
   end
 
   describe '#diag_bottom_left' do
-    subject(:board) { described_class.new }
     context 'When piece is white' do
       it 'should return [] when no moves are available' do
         position = [7, 2]
@@ -162,7 +161,6 @@ describe Board do
   end
 
   describe '#top' do
-    subject(:board) { described_class.new }
     it 'should return [[6,0], [5, 0], [4, 0]] when position is [3, 0] ' do
       position = [3, 0]
       color = 'black'
@@ -171,7 +169,6 @@ describe Board do
   end
 
   describe '#destination' do
-    subject(:board) { described_class.new }
     context 'When input is valid' do
       it 'should return a3 when input is a3 and color is white' do
         input = 'Na3'
@@ -206,27 +203,99 @@ describe Board do
   end
 
   describe '#check?' do
-    subject(:board) {described_class.new}
-    let(:bishop) {Bishop.new('white', [3, 7])}
     context 'When black king is in check' do
       it 'should return true when bishop targets king' do
-        board.instance_eval('@cells[1][5] = "   "')
-        board.white[:bishops].push(bishop)
-        board.white.each{|key, value| value.kind_of?(Array) ? value.each{ |piece| piece.init_next_moves(board) } : value.init_next_moves(board)}
+        board.instance_eval('@cells[1][5] = "   "') # f7 square is empty
+        board.instance_eval('@cells[2][6] = " \u265D "')
+        board.black[:pawns].select{|pawn| pawn.pos == [1, 5]}[0].pos = [3, 5]
+        board.white[:bishops][0].pos = board.coordinates('g6')
+        board.update_next_moves
         expect(board.check?('black')).to eql(true)
       end
     end
   end
 
-  describe '#update_position' do
-    let(:board) { described_class.new }
-    it 'should change position of piece' do
-      destination = [2, 0]
-      origin = [1, 0]
-      color = 'black'
-      board.update_position(destination, origin, color)
-      expect(board.black[:pawns][0].pos).to eq(destination)
+  describe '#valid_move?' do
+    context 'When it is an invalid move' do
+      before do
+        bishop_pos = board.coordinates('b4')
+        board.black[:bishops][0].pos = bishop_pos
+        board.cells[bishop_pos[0]][bishop_pos[1]] = board.black[:bishops][0].sym
+        board.update_next_moves
+        board.display_board
+        # p board.white[:pawns].select{|pawn| pawn.pos == pawn_pos}[0].next_moves
+      end
+
+      it 'should return false when origin is d2' do
+        origin = board.coordinates('d2')
+        destination = board.coordinates('d4')
+        color = 'white'
+        piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
+        expect(board.valid_move?(destination, origin, piece[0], color)).to eql(false)
+
+      end
+
+      it 'should return true when origin is c2' do
+        origin = board.coordinates('c2')
+        destination = board.coordinates('c4')
+        color = 'white'
+        piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
+
+        #board.display_board
+        expect(board.valid_move?(destination, origin, piece[0], color)).to eql(true)
+      end
     end
 
+    context 'When it is a valid move' do
+      it 'should return true when origin is d2' do
+        origin = board.coordinates('d2')
+        destination = board.coordinates('d4')
+        color = 'white'
+        piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
+        expect(board.valid_move?(destination, origin, piece[0], color)).to eql(true)
+      end
+    end
   end
+
+  describe '#update_position' do
+    it 'should change position of piece' do
+      destination = board.coordinates('a3')
+      origin = board.coordinates('a2')
+      color = 'white'
+      board.update_position(destination, origin, color)
+      expect(board.white[:pawns][0].pos).to eq(destination)
+    end
+  end
+
+  describe '#checkmate?' do
+    before do
+      p_pos = board.coordinates('d2')
+      p_dest = board.coordinates('d4')
+      b_origin = board.black[:bishops][1].pos
+      b_dest = board.coordinates('b4')
+      board.white[:pawns].select{|pawn| pawn.pos ==p_pos}[0].pos = p_dest
+      board.black[:bishops][1].pos = b_dest
+      board.cells[p_pos[0]][p_pos[1]] = "   "
+      board.cells[b_origin[0]][b_origin[1]] = "   "
+      board.cells[p_dest[0]][p_dest[1]] = board.white[:pawns][0].sym
+      board.cells[b_dest[0]][b_dest[1]] = board.black[:bishops][0].sym
+      board.update_next_moves
+    end
+
+    it 'should return false when king can move' do
+      expect(board.checkmate?('white')).to eql(false)
+    end
+
+    it 'should return true when king cannot move' do
+      board.white[:bishops].delete_at(0)
+      board.white[:knights].delete_at(0)
+      board.white[:pawns].delete_at(2)
+      board.white.delete(:queen)
+      board.update_next_moves
+      # board.white.values.flatten.each{|piece| p piece}
+      expect(board.checkmate?('white')).to eql(true)
+      # board.white.values.flatten.each{|piece| p piece.next_moves}
+    end
+  end
+
 end
