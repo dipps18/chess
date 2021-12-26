@@ -222,8 +222,6 @@ describe Board do
         board.black[:bishops][0].pos = bishop_pos
         board.cells[bishop_pos[0]][bishop_pos[1]] = board.black[:bishops][0].sym
         board.update_next_moves
-        board.display_board
-        # p board.white[:pawns].select{|pawn| pawn.pos == pawn_pos}[0].next_moves
       end
 
       it 'should return false when origin is d2' do
@@ -240,8 +238,6 @@ describe Board do
         destination = board.coordinates('c4')
         color = 'white'
         piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
-
-        #board.display_board
         expect(board.valid_move?(destination, origin, piece[0], color)).to eql(true)
       end
     end
@@ -262,7 +258,7 @@ describe Board do
       destination = board.coordinates('a3')
       origin = board.coordinates('a2')
       color = 'white'
-      board.update_position(destination, origin, color)
+      board.update_position(destination, origin)
       expect(board.white[:pawns][0].pos).to eq(destination)
     end
   end
@@ -275,10 +271,7 @@ describe Board do
       b_dest = board.coordinates('b4')
       board.white[:pawns].select{|pawn| pawn.pos ==p_pos}[0].pos = p_dest
       board.black[:bishops][1].pos = b_dest
-      board.cells[p_pos[0]][p_pos[1]] = "   "
-      board.cells[b_origin[0]][b_origin[1]] = "   "
-      board.cells[p_dest[0]][p_dest[1]] = board.white[:pawns][0].sym
-      board.cells[b_dest[0]][b_dest[1]] = board.black[:bishops][0].sym
+      board.update_cells
       board.update_next_moves
     end
 
@@ -292,9 +285,36 @@ describe Board do
       board.white[:pawns].delete_at(2)
       board.white.delete(:queen)
       board.update_next_moves
-      # board.white.values.flatten.each{|piece| p piece}
       expect(board.checkmate?('white')).to eql(true)
-      # board.white.values.flatten.each{|piece| p piece.next_moves}
+    end
+  end
+
+  describe '#stalemate?' do
+    context 'When stalemate' do
+      before do
+        board.white.delete_if{ |key, value| key != :king }
+        board.black.delete_if{ |key, value| key != :king && key!= :pawns }
+        board.pieces.delete_if{ |piece| piece.sym != " \u2659 " || piece.sym != " \u2654 " || " \u265A " }
+        board.update_next_moves
+
+        board.black[:pawns].slice!(0, 6)
+        board.black[:pawns][0].pos = [1, 2]
+        board.black[:king][0].pos = [2, 0]
+        board.white[:king][0].pos = [0, 0]
+      end
+
+      it 'should return true when stalemate' do
+        expect(board.stalemate?).to eql(true)
+      end
+    end
+
+    context 'When not stalemate' do
+      before do
+        board.update_next_moves
+      end
+      it 'should return false when not stalemate' do
+        expect(board.stalemate?).to eql(false)
+      end
     end
   end
 

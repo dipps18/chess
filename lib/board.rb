@@ -7,17 +7,16 @@ require_relative 'queen.rb'
 require_relative 'rook.rb'
 class Board
 	attr_reader :white, :black, :cells
+	attr_accessor :pieces
   def initialize
 		@WHITE_SYMBOLS = [" \u265F ", " \u265E ", " \u265B ", " \u265A ", " \u265C ", " \u265D "]
 		@BLACK_SYMBOLS = [" \u2659 ", " \u2658 ", " \u2655 ", " \u2654 ", " \u2656 ", " \u2657 "]
     @white = create_pieces('white')
     @black = create_pieces('black')
 		@pieces = [@white.values, @black.values].flatten
-		# condition = proc{ |pieces| pieces.each{ |piece| piece.init_next_valid_cells(self, piece.color) }}
-		# @white.each{ |key, value| condition.call(value) }
-		# @black.each{ |key, value| condition.call(value) }
-    @cells = Array.new(8){ Array.new(8) }
-    init_cells
+		@cells = Array.new(8){ Array.new(8) }
+		update_next_moves
+		update_cells
   end
 
 	def create_pieces(color)
@@ -26,70 +25,83 @@ class Board
      :knights => Array.new(2){ Knight.new(color) },
      :rooks => Array.new(2){ Rook.new(color) },
      :queen => Array.new(1){ Queen.new(color) },
-		 :king => Array.new(1){ King.new(color) }}
+		 :king => Array.new(1){ King.new(color) } }
 	end
 
-  def init_cells
-    @cells.map!{|row| row.map!{ |cell| cell = "   " if cell == nil } }
-    @white.values.flatten.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym }
-    @black.values.flatten.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym }
+	def update_pieces(origin, color)
+		color_set = color == 'white' ? @white : @black
+		@pieces.delete_if{ |piece| piece.pos == origin }
+		color_set.values.delete_if{ |piece| piece.pos == origin}
+	end
+
+  def update_cells
+    @cells.map!{|row| row.map{ |cell| cell = "   "} }
+    @pieces.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym }
   end
 
   def display_board
-    count = 0
+    ct = 0
 		puts "\n"
     @cells.each do |row|
       row.each do |piece|
-        print count % 2 == 1 ? ANSI::Code.rgb(0, 0, 0, true){piece} : ANSI::Code.rgb(250, 50, 50, true){piece}
-        count += 1
+        print ct % 2 == 1 ? ANSI::Code.rgb(0, 0, 0, true){piece} : ANSI::Code.rgb(250, 50, 50, true){piece}
+        ct += 1
       end
       print "\n"
-      count += 1
+      ct += 1
     end
   end
 
 	def valid_move?(destination, origin, piece, color)
 		piece.pos = destination
-		temp = @cells[destination[0]][destination[1]]
-		@cells[destination[0]][destination[1]] = piece.sym
-		@cells[origin[0]][origin[1]] = "   "
+		update_cells
 		update_all_moves
 		valid_move = check?(color) ? false : true
 		piece.pos = origin
-		@cells[origin[0]][origin[1]] = piece.sym
-		@cells[destination[0]][destination[1]] = temp
+		update_cells
 		update_all_moves
 		valid_move
 	end
 
 	def update_all_moves #updates next_moves for each piece, also includes invalid moves
-		@white.values.flatten.each{ |piece| piece.next_moves = piece.all_moves(self) }
-		@black.values.flatten.each{ |piece| piece.next_moves = piece.all_moves(self) }
+		@pieces.each{ |piece| piece.next_moves = piece.all_moves(self) }
 	end
 
 	def update_next_moves #updates next moves for each piece with only valid moves
-		# @pieces.each{|piece| p piece; p piece.all_moves(self).select{|move| valid_move?(move, piece.pos, piece, piece.color)} }
-		condition = proc{ |piece| piece.next_moves = piece.all_moves(self).select{ |move| valid_move?(move, piece.pos, piece, piece.color)} }
-		@white.values.flatten.each{ |piece| condition.call(piece) }
-		@black.values.flatten.each{ |piece| condition.call(piece) }
-		# @white.values.flatten.each{|piece| p piece.next_moves}
+		@pieces.each do |piece|
+			piece.next_moves = piece.all_moves(self).select do |move|
+				valid_move?(move, piece.pos, piece, piece.color)
+			end
+		end
 	end
 
-	def update_position(destination, origin, color)
-    pieces = color == 'white' ? @white : @black
-		piece = pieces.map{ |key, value| value.select{ |piece| piece.pos == origin } }[0]
-		piece[0].pos = destination
+	def update_position(destination, origin)
+		piece = @pieces.select{ |piece| piece.pos == origin }[0]
+		piece.pos = destination
+	end
+
+	def stalemate?
+		@pieces.all?{ |piece| piece.next_moves.empty? }
 	end
 
   def check?(color)
-		king_pos, opp_pieces = color == 'white' ? [@white[:king][0].pos, @black.values.flatten] : [@black[:king][0].pos, @white.values.flatten]
+		 if color == 'white'
+			king_pos = @white[:king][0].pos
+			opp_pieces = @black.values.flatten
+		 else
+			king_pos = @black[:king][0].pos
+			opp_pieces = @white.values.flatten
+		 end
 		opp_pieces.any?{ |piece| piece if piece.next_moves.include?(king_pos) }
   end
 
 	def checkmate?(color)
 		pieces = color == 'black' ? @black : @white
-		#pieces.values.flatten.none?{ |piece|  piece.next_moves.any?{ |move| p valid_move?(move, piece.pos, piece, piece.color) } } 
-		pieces.values.flatten.none?{ |piece| piece.next_moves.any?{ |move| valid_move?(move, piece.pos, piece, piece.color) } }
+		pieces.values.flatten.none? do |piece|
+			piece.next_moves.any? do |move|
+				valid_move?(move, piece.pos, piece, piece.color)
+			end
+		end
 	end
 
 	def out_of_bounds?(next_pos)
@@ -138,7 +150,11 @@ class Board
 			break if out_of_bounds?(next_pos) || piece_in_cell?(color, next_pos) || !cell_empty?(cur_pos)
       cells.push(next_pos.dup)
 			cur_pos = cells[-1]
-			index == nil ? next_pos = [cur_pos[0] + offset[0], cur_pos[1] + offset[1]] : next_pos[index] = cur_pos[index] + offset
+			if index == nil
+				next_pos = [cur_pos[0] + offset[0], cur_pos[1] + offset[1]]
+			else
+			  next_pos[index] = cur_pos[index] + offset
+			end
 		end
 		cells
 	end

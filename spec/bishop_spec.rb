@@ -10,16 +10,19 @@ describe Bishop do
         input = 'Bh3'
         destination = [2, 7]
         pieces = board.white
-        expect(Bishop.origin(input, destination, pieces))
+        expect(Bishop.origin(input, destination, pieces)).to eql([7,2])
       end
       
       context 'When 2 bishops are on the same row' do
         before do
-          board.white[:bishops].push(Bishop.new('white', [5, 3])).select{ |bishop| bishop.pos == [7, 5] }.map!{ |bishop| bishop.pos = [5, 5] }
+          board.white[:bishops].push(Bishop.new('white', [5, 3]))
+          board.pieces.push(Bishop.new('white', [5, 3]))
           board.white[:bishops].each{ |bishop| bishop.init_next_moves(board) }
+          board.update_cells
         end
         it 'should return ' do
           destination = [4, 4]
+
           input = 'Bde4'
           pieces = board.white
           expect(Bishop.origin(input, destination, pieces)).to eql([5, 3])

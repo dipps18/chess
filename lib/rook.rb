@@ -21,11 +21,10 @@ class Rook
     rooks = pieces[:rooks].select{ |rook| rook.next_moves.include?(destination) }
 		if rooks.length > 1 # only possible when pawn has been promoted to rook
 			if input[1].match?(/[a-h]/)
-				condition = proc{ |rook| rook.pos[1] == Board.column(input[1]) }
+				return rooks.select{ |rook| rook.pos[1] == Board.column(input[1]) }[0].pos
 			elsif input[1].match?(/[1-8]/)
-				condition = proc{ |rook| rook.pos if rook.pos[0] == Board.row(input[1]) }
+				return rooks.select{ |rook| rook.pos[0] == Board.row(input[1]) }[0].pos
 			end
-			return rooks.select{ |rook| condition.call(rook) }[0].pos if input[1].match?(/[a-h1-8]/)
 		end
 		rooks[0] ? rooks[0].pos : nil
   end

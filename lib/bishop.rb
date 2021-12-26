@@ -12,7 +12,7 @@ class Bishop
   end
 
 	def init_next_moves(board)
-		@next_moves = moves(board)
+		@next_moves = all_moves(board)
 	end
 	
 	# def valid_move?(dest, board)
@@ -30,14 +30,14 @@ class Bishop
     bishops = pieces[:bishops].select{ |bishop| bishop.next_moves.include?(destination) }
 		if bishops.length > 1 # only possible when pawn has been promoted to bishop
 			if input[1].match?(/[a-h]/)
-				condition = proc{ |bishop| bishop.pos[1] == Board.column(input[1]) }
+				return bishops.select{ |bishop| bishop.pos[1] == Board.column(input[1]) }[0].pos
 			elsif input[1].match?(/[1-8]/)
-				condition = proc{ |bishop| bishop.pos if bishop.pos[0] == Board.row(input[1]) }
+				return bishops.select{ |bishop| bishop.pos[0] == Board.row(input[1]) }[0].pos
 			end
-			return bishops.select{ |bishop| condition.call(bishop) }[0].pos if input[1].match?(/[a-h1-8]/)
 		end
 		return bishops[0].pos if bishops[0].next_moves.include?(destination)
   end
+ 
  
 	def all_moves(board)
 		[board.diag_top_right(@pos, @color), board.diag_top_left(@pos, @color),
