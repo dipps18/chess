@@ -6,8 +6,8 @@
 # require_relative 'rook.rb'
 
 class Pawn
-  attr_accessor :sym, :pos, :next_moves
-  attr_reader :color, :enpossible
+  attr_accessor :sym, :pos, :next_moves, :enpossible
+  attr_reader :color
   @@count = 0
 
   def initialize(color)
