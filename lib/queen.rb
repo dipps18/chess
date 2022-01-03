@@ -6,6 +6,7 @@ class Queen
 		@color = color
 		@pos, @sym = color == 'black' ? [[0, 3], " \u2655 "] : [[7, 3], " \u265B "]
 		@pos = pos if pos
+		@next_moves = []
 	end
 
 	def init_next_moves(board)
@@ -13,16 +14,16 @@ class Queen
 	end
 
 	def self.origin(input, destination, pieces)
-    queen = pieces[:Queen]
+    queen = pieces[:queen].select{ |queen| queen.next_moves.include?(destination) }
 		if queen.length > 1 #only happend when pawn is promoted to queen
 			if input[1].match?(/[a-h]/)
 				condition = proc{ |queen| queen.pos[1] == Board.column(input[1]) }
 			elsif input[1].match?(/[1-8]/)
 				condition = proc{ |queen| queen.pos if queen.pos[0] == Board.row(input[1]) }
 			end
-			return queens.select{ |queen| condition.call(queen) }[0].pos if input[1].match?(/[a-h1-8]/)
+			return queen.select{ |queen| condition.call(queen) }[0].pos if input[1].match?(/[a-h1-8]/)
 		end
-		return queen[0] ? queen[0].pos : nil
+		return queen[0].pos unless queen.empty?
   end
  
 	def all_moves(board)

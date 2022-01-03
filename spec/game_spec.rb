@@ -6,28 +6,149 @@ describe Game do
 
   describe '#update' do
     it 'should update position of white pawn to e4' do
-      initial = game.board.coordinates('e2')
-      final = game.board.coordinates('e4')
+      initial =  Board.coordinates('e2')
+      final = Board.coordinates('e4')
       expect{ game.update('e4', 'white') }.to change{ game.board.white[:pawns][4].pos}.from(initial).to(final)
+    end
+
+    it 'should update position of black pawn to e5' do
+      initial =  Board.coordinates('e7')
+      final = Board.coordinates('e5')
+      expect{ game.update('e5', 'black') }.to change{ game.board.black[:pawns][4].pos}.from(initial).to(final)
+    end
+
+  end
+
+  describe '#pawn_move' do
+    it 'should return true when input is a4' do
+      input = 'a4'
+      expect(game.pawn_move?(input)).to eql(true)
+    end
+
+    it 'should return true when input is axb2' do
+      input = 'axb2'
+      expect(game.pawn_move?(input)).to eql(true)
+    end
+
+    it 'should return false when input is aa2' do
+      input = 'aa2'
+      expect(game.pawn_move?(input)).to eql(false)
+    end
+  end
+
+  describe '#king_move' do
+    it 'should return true when input is a4' do
+      input = 'Ka4'
+      expect(game.king_move?(input)).to eql(true)
+    end
+
+    it 'should return true when input is axb2' do
+      input = 'Kxb2'
+      expect(game.king_move?(input)).to eql(true)
+    end
+
+    it 'should return false when input is Kx2' do
+      input = 'Kx2'
+      expect(game.king_move?(input)).to eql(false)
+    end
+  end
+
+  describe '#piece_move?' do
+    it 'should return true when input is Nc4' do
+      input = 'Nc4'
+      expect(game.piece_move?(input)).to eql(true)
+    end
+
+    it 'should return true when input is Nxc4' do
+      input = 'Nxc4'
+      expect(game.piece_move?(input)).to eql(true)
+    end
+
+    it 'should return true when input is N3xc4' do
+      input = 'N3xc4'
+      expect(game.piece_move?(input)).to eql(true)
+    end
+
+    it 'should return true when input is Ndc4' do
+      input = 'Ndc4'
+      expect(game.piece_move?(input)).to eql(true)
+    end
+    
+    it 'should return true when input is Ndxc4' do
+      input = 'N3xc4'
+      expect(game.piece_move?(input)).to eql(true)
+    end
+
+    it 'should return true when input is Nba4' do
+      input = 'Nba4'
+      expect(game.piece_move?(input)).to eql(true)
+    end
+
+  end
+
+
+  describe '#input' do
+    context 'When the input is right' do
+  
+      it 'should return input' do
+        input = 'a4'
+        allow(game).to receive(:gets).and_return(input)
+        expect(game.input('white')).to eql(input)
+      end
+    end
+
+    context 'When input is wrong' do
+      it 'should display error message and ask user to input again' do
+      end  
     end
   end
 
   describe '#play' do
-    before do
-      allow(game).to receive(:input).and_return('a4', 'a5', 'e4', 'e5')
-      allow(game).to receive(:gameover?).and_return(false, false, false, false, true)
+    # before do
+    #   allow(game).to receive(:input).and_return('b4', 'a5', 'e4', 'e5')
+    # end
+
+    # it 'should change position of pawn at b2, a7, e2, e7' do
+    #   b2 = Board.coordinates('b2')
+    #   b4 = Board.coordinates('b4')
+    #   a5 = Board.coordinates('a5')
+    #   a7 = Board.coordinates('a7')
+    #   e2 = Board.coordinates('e2')
+    #   e4 = Board.coordinates('e4')
+    #   e5 = Board.coordinates('e5')
+    #   e7 = Board.coordinates('e7')
+    #   expect{ game.play }.to change{ game.board.white[:pawns][1].pos }.from(b2).to(b4)
+    # end
+
+    it 'should reduce the size of pieces by 1' do
+      allow(game).to receive(:gameover?).and_return(false, false, false, false, false, true)
+      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5', 'Bd7', 'a3', 'Bxb5')
+      length = game.board.pieces.length
+      expect{ game.play }.to change{ game.board.pieces.length }.from(length).to(length - 1)
     end
 
-    it 'should change position of pawn at a2, a7, e2, e7' do
-      a2 = game.board.coordinates('a2')
-      a4 = game.board.coordinates('a4')
-      a5 = game.board.coordinates('a5')
-      a7 = game.board.coordinates('a7')
-      e2 = game.board.coordinates('e2')
-      e4 = game.board.coordinates('e4')
-      e5 = game.board.coordinates('e5')
-      e7 = game.board.coordinates('e7')
-      expect{ game.play }.to change{ game.board.white[:pawns][0].pos }.from(a2).to(a4)
+    it 'should reduce the size of pieces by 1' do
+      allow(game).to receive(:gameover?).and_return(false, false, false, false, false, true)
+      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5', 'Bd7', 'a3', 'Bxb5')
+      expect{game.play}.to change{game.board.white[:bishops].length}.from(2).to(1)
+    end
+
+    it 'final position of e2 pawns should be c6' do
+      allow(game).to receive(:gameover?).and_return(false, false, false, false, true)
+      allow(game).to receive(:input).and_return('e4', 'd5', 'exd5', 'Nc6', 'dxc6')
+      expect{ game.play }.to change{ game.board.white[:pawns][4].pos }.from(Board.coordinates('e2')).to(Board.coordinates('c6'))
+    end
+
+    it 'should work nice' do
+      allow(game).to receive(:gameover?).and_return(false, false, false, false, true)
+      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5', 'Bd7', 'Bxd7')
+      expect{ game.play }.to change{ game.board.black[:bishops].length }.from(2).to(1)
+    end
+
+    it 'should work nice 2' do
+      allow(game).to receive(:gameover?).and_return(false, false, false, false, false, false, false, true)
+      allow(game).to receive(:input).and_return('e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6', 'Ba4', 'Nf6')
+      game.play
     end
   end
 end

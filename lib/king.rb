@@ -4,6 +4,7 @@ class King
 
   def initialize(color)
 		@color = color
+		@next_moves = []
 		@pos, @sym = color == 'black' ? [[0, 4], " \u2654 "] : [[7, 4], " \u265A "]
 	end
 
@@ -18,5 +19,9 @@ class King
 		end
 		moves	
 	end
-	
+
+	def self.origin(input, destination, pieces)
+    king = pieces[:king].select{ |king| king.next_moves.include?(destination) }
+		return king[0].pos unless king.empty?
+  end
 end

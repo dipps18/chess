@@ -15,8 +15,8 @@ class Board
     @black = create_pieces('black')
 		@pieces = [@white.values, @black.values].flatten
 		@cells = Array.new(8){ Array.new(8) }
-		update_next_moves
 		update_cells
+		update_all_moves
   end
 
 	def create_pieces(color)
@@ -28,10 +28,10 @@ class Board
 		 :king => Array.new(1){ King.new(color) } }
 	end
 
-	def update_pieces(origin, color)
-		color_set = color == 'white' ? @white : @black
-		@pieces.delete_if{ |piece| piece.pos == origin }
-		color_set.values.delete_if{ |piece| piece.pos == origin}
+	def update_pieces(position, color)
+		opp_color = color == 'black' ? @white : @black
+		@pieces.delete_if{ |piece| piece.pos == position }
+		opp_color.each{ |piece_type, pieces| pieces.delete_if{|piece| piece.pos == position }}
 	end
 
   def update_cells
@@ -52,30 +52,50 @@ class Board
     end
   end
 
-	def valid_move?(destination, origin, piece, color)
-		piece.pos = destination
+	def change_position(piece, position)
+		piece.pos = position
 		update_cells
 		update_all_moves
+	end
+
+
+	def valid_move?(destination, origin, color, capture = false)
+		piece = @pieces.select{ |piece| piece.pos == origin }[0]
+		return false unless piece.next_moves.include?(destination)
+		opp_color, opp_color_pieces = color == 'white' ? ['black', @black] : ['white', @white]
+		if capture == true
+			piece_type = opp_color_pieces.map{|piece_type, pieces| piece_type if pieces.any?{|piece| piece.pos == destination}}.compact[0]
+			captured_piece = opp_color_pieces.values.flatten.select{|piece| piece.pos == destination}[0].dup
+			update_pieces(destination, color)
+		end
+		
+		change_position(piece, destination)
 		valid_move = check?(color) ? false : true
-		piece.pos = origin
-		update_cells
-		update_all_moves
+		change_position(piece, origin)
+		add_piece(destination, piece_type, opp_color, captured_piece) if capture
 		valid_move
 	end
 
-	def update_all_moves #updates next_moves for each piece, also includes invalid moves
+	def add_piece(position, piece_type, color, piece)
+		color_pieces = color == 'white' ? @white : @black
+		color_pieces[piece_type].push(piece)
+		@pieces.push(piece)
+	end
+
+	def update_all_moves # updates next_moves for each piece, also includes invalid moves
 		@pieces.each{ |piece| piece.next_moves = piece.all_moves(self) }
 	end
 
-	def update_next_moves #updates next moves for each piece with only valid moves
+	def update_next_moves # updates next moves for each piece with only valid moves
 		@pieces.each do |piece|
 			piece.next_moves = piece.all_moves(self).select do |move|
-				valid_move?(move, piece.pos, piece, piece.color)
+				valid_move?(move, piece.pos, piece.color)
 			end
 		end
 	end
 
 	def update_position(destination, origin)
+		@pieces.select{ |piece| piece.pos == origin }[0]
 		piece = @pieces.select{ |piece| piece.pos == origin }[0]
 		piece.pos = destination
 	end
@@ -85,13 +105,13 @@ class Board
 	end
 
   def check?(color)
-		 if color == 'white'
+		if color == 'white'
 			king_pos = @white[:king][0].pos
 			opp_pieces = @black.values.flatten
-		 else
+		else
 			king_pos = @black[:king][0].pos
 			opp_pieces = @white.values.flatten
-		 end
+		end
 		opp_pieces.any?{ |piece| piece if piece.next_moves.include?(king_pos) }
   end
 
@@ -99,7 +119,7 @@ class Board
 		pieces = color == 'black' ? @black : @white
 		pieces.values.flatten.none? do |piece|
 			piece.next_moves.any? do |move|
-				valid_move?(move, piece.pos, piece, piece.color)
+				valid_move?(move, piece.pos, piece.color)
 			end
 		end
 	end
@@ -116,7 +136,7 @@ class Board
 		(input.to_i - 8).abs
 	end
 
-	def coordinates(position)
+	def self.coordinates(position)
     [Board.row(position[1]), Board.column(position[0])]
   end
 
@@ -127,14 +147,23 @@ class Board
 	def destination(input, opp_color)
     destination = input[-2..-1]
     return nil unless destination.match?(/[a-h][1-8]/)
-
-    destination = coordinates(destination)
-    return nil if Board.capture?(input) && !piece_in_cell?(opp_color, destination)
+    destination = Board.coordinates(destination)
+    return nil if Board.capture?(input) && !piece_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 
     return nil if !Board.capture?(input) && !cell_empty?(destination)
     return destination
   end
 
+	def enpassant?(destination, input, opp_color)
+		pawn_sym = opp_color == 'black' ? @black[:pawns][0].sym : @white[:pawns][0].sym
+	  if input.match?(/^[a-h]x[a-h][1-8]$/)
+			return true if @cells[destination[0]][destination[1] - 1] == pawn_sym
+			return true if @cells[destination[0]][destination[1] + 1] == pawn_sym
+		end
+		false
+	end
+
 	def piece_in_cell?(color, pos)
+		@cells[pos[0]][pos[1]]
 		pieces = color == 'black' ? @BLACK_SYMBOLS : @WHITE_SYMBOLS
 		pieces.include?(@cells[pos[0]][pos[1]])
 	end

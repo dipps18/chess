@@ -6,7 +6,7 @@ describe Bishop do
     context 'When valid input is given' do
       it 'should return [7, 2]' do
         board.instance_eval('@cells[6][3] = "   "')
-        board.white[:bishops].each{ |bishop| bishop.init_next_moves(board) }
+        board.update_next_moves
         input = 'Bh3'
         destination = [2, 7]
         pieces = board.white
@@ -17,12 +17,11 @@ describe Bishop do
         before do
           board.white[:bishops].push(Bishop.new('white', [5, 3]))
           board.pieces.push(Bishop.new('white', [5, 3]))
-          board.white[:bishops].each{ |bishop| bishop.init_next_moves(board) }
+          board.update_next_moves
           board.update_cells
         end
         it 'should return ' do
           destination = [4, 4]
-
           input = 'Bde4'
           pieces = board.white
           expect(Bishop.origin(input, destination, pieces)).to eql([5, 3])
@@ -32,11 +31,11 @@ describe Bishop do
       context 'When 2 bishops are in the same column(file)' do
         before do
           board.white[:bishops].push(Bishop.new('white', [5, 3])).select{ |bishop| bishop.pos == [7, 5] }.map!{ |bishop| bishop.pos = [1, 3] }
-          board.white[:bishops].each{ |bishop| bishop.init_next_moves(board) }
+          board.update_next_moves
         end
 
         it 'should return ' do
-          destination = [3, 5]
+          destination = Board.coordinates('f5')
           input = 'B3f5'
           pieces = board.white
           expect(Bishop.origin(input, destination, pieces)).to eql([5, 3])

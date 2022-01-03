@@ -9,6 +9,7 @@ class Knight
 		coordinates, @sym = color == 'black' ? [[[0, 1], [0, 6]], " \u2658 "] : [[[7, 1], [7, 6]], " \u265E "]
 		@pos = pos ? pos : coordinates[@@count]
     @@count += 1
+    @next_moves = []
 	end
 
   def init_next_moves(board)

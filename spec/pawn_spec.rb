@@ -58,31 +58,40 @@ describe Pawn do
 
   describe '#origin' do
     let(:board) { Board.new }
-    let(:pawns) { board.black[:pawns] }
-
 
     context 'When origin is valid' do 
  
-      before do
-        pawns.each{|pawn| board.update_all_moves}
-      end
-
       it 'should return [2, 0] when a1 is played' do
         input = 'a3'
-        destination = [2, 0]
-        expect(Pawn.origin(input, destination, board.black)).to eql([1,0])
+        destination = Board.coordinates('a3')
+        origin = Board.coordinates('a2')
+        expect(Pawn.origin(input, destination, board.white)).to eql(origin)
       end
 
-      it 'should return [2, 1] ' do
+      it 'should return [6, 0] when white pawn on a2 captures pawn on b3' do
         input = 'axb3'
-        destination = [2, 1]
-        expect(Pawn.origin(input, destination, board.black)).to eql([1, 0])
+        destination = Board.coordinates('b3')
+        origin = Board.coordinates('a2')
+        board.black[:pawns][0].pos = destination
+        board.update_next_moves
+        expect(Pawn.origin(input, destination, board.white)).to eql(origin)
+      end
+
+      it 'should return e5 when white pawn on e5 captures pawn on d5 by enpassant ' do
+        input = 'exd6'
+        destination = Board.coordinates('d6')
+        origin = Board.coordinates('e5')
+        board.black[:pawns][3].pos = Board.coordinates('d5')
+        board.white[:pawns][4].pos = origin
+        board.black[:pawns][3].enpossible = true
+        board.update_next_moves
+        expect(Pawn.origin(input, destination, board.white)).to eql(origin)
       end
     end
 
     context 'When origin is invalid' do
       before do
-        pawns.each{|pawn| board.update_all_moves }
+        board.update_all_moves
       end
 
       it 'should return nil' do

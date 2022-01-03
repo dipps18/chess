@@ -9,22 +9,8 @@ class Bishop
 		coordinates, @sym = color == 'black' ? [[[0, 2], [0, 5]], " \u2657 "] : [[[7, 2], [7, 5]], " \u265D "]
 		@pos = pos ? pos : coordinates[@@count]
     @@count += 1
+		@next_moves = []
   end
-
-	def init_next_moves(board)
-		@next_moves = all_moves(board)
-	end
-	
-	# def valid_move?(dest, board)
-	# 	dest = coordinate(dest)
-	# 	(next_moves.include?(dest) && board.cell_empty(dest)
-	# end
-
-	# def valid_capture?(color, dest, board)
-	# 	dest = coordinate(dest)
-	# 	opp_pieces = color == 'white' ? black_pieces : white_pieces
-	# 	(next_moves1.include?(dest) && opp_pieces.include?(board.cells[dest[0]][dest[1]])
-	# end
 
 	def self.origin(input, destination, pieces)
     bishops = pieces[:bishops].select{ |bishop| bishop.next_moves.include?(destination) }
@@ -35,7 +21,7 @@ class Bishop
 				return bishops.select{ |bishop| bishop.pos[0] == Board.row(input[1]) }[0].pos
 			end
 		end
-		return bishops[0].pos if bishops[0].next_moves.include?(destination)
+		return bishops[0].pos unless bishops.empty?
   end
  
  

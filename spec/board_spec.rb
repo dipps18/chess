@@ -31,7 +31,7 @@ describe Board do
   describe '#diag_top_right' do
     subject(:board) { described_class.new }
     context 'When piece is white' do
-      it 'should return []] when no moves are available' do
+      it 'should return [] when no moves are available' do
         position = [7, 2]
         color = 'white'
         expect(board.diag_top_right(position, color)).to eql([])
@@ -175,6 +175,11 @@ describe Board do
         expect(board.destination(input, 'white')).to eq([5, 0])
       end
 
+      # it 'should return d5 when capturing pawn at d4 by enpassant' do
+      #   board.black[:pawns][0].pos = Board.coordinates('d4')
+      #   board.white[:pawns][0].pos = Board.coordinates('e4')
+      # end
+
       it 'should return c6 when input is Qxc6 and color is white' do
         input = 'Qxc6'
         board.instance_eval('@cells[2][2] = " \u265F "')
@@ -208,7 +213,7 @@ describe Board do
         board.instance_eval('@cells[1][5] = "   "') # f7 square is empty
         board.instance_eval('@cells[2][6] = " \u265D "')
         board.black[:pawns].select{|pawn| pawn.pos == [1, 5]}[0].pos = [3, 5]
-        board.white[:bishops][0].pos = board.coordinates('g6')
+        board.white[:bishops][0].pos = Board.coordinates('g6')
         board.update_next_moves
         expect(board.check?('black')).to eql(true)
       end
@@ -218,45 +223,45 @@ describe Board do
   describe '#valid_move?' do
     context 'When it is an invalid move' do
       before do
-        bishop_pos = board.coordinates('b4')
+        bishop_pos = Board.coordinates('b4')
         board.black[:bishops][0].pos = bishop_pos
         board.cells[bishop_pos[0]][bishop_pos[1]] = board.black[:bishops][0].sym
         board.update_next_moves
       end
 
       it 'should return false when origin is d2' do
-        origin = board.coordinates('d2')
-        destination = board.coordinates('d4')
+        origin = Board.coordinates('d2')
+        destination = Board.coordinates('d4')
         color = 'white'
         piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
-        expect(board.valid_move?(destination, origin, piece[0], color)).to eql(false)
+        expect(board.valid_move?(destination, origin, color)).to eql(false)
 
       end
 
       it 'should return true when origin is c2' do
-        origin = board.coordinates('c2')
-        destination = board.coordinates('c4')
+        origin = Board.coordinates('c2')
+        destination = Board.coordinates('c4')
         color = 'white'
         piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
-        expect(board.valid_move?(destination, origin, piece[0], color)).to eql(true)
+        expect(board.valid_move?(destination, origin, color)).to eql(true)
       end
     end
 
     context 'When it is a valid move' do
       it 'should return true when origin is d2' do
-        origin = board.coordinates('d2')
-        destination = board.coordinates('d4')
+        origin = Board.coordinates('d2')
+        destination = Board.coordinates('d4')
         color = 'white'
         piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
-        expect(board.valid_move?(destination, origin, piece[0], color)).to eql(true)
+        expect(board.valid_move?(destination, origin, color)).to eql(true)
       end
     end
   end
 
   describe '#update_position' do
     it 'should change position of piece' do
-      destination = board.coordinates('a3')
-      origin = board.coordinates('a2')
+      destination = Board.coordinates('a3')
+      origin = Board.coordinates('a2')
       color = 'white'
       board.update_position(destination, origin)
       expect(board.white[:pawns][0].pos).to eq(destination)
@@ -265,10 +270,10 @@ describe Board do
 
   describe '#checkmate?' do
     before do
-      p_pos = board.coordinates('d2')
-      p_dest = board.coordinates('d4')
+      p_pos = Board.coordinates('d2')
+      p_dest = Board.coordinates('d4')
       b_origin = board.black[:bishops][1].pos
-      b_dest = board.coordinates('b4')
+      b_dest = Board.coordinates('b4')
       board.white[:pawns].select{|pawn| pawn.pos ==p_pos}[0].pos = p_dest
       board.black[:bishops][1].pos = b_dest
       board.update_cells

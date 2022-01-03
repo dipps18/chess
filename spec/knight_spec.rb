@@ -14,7 +14,7 @@ describe Knight do
     subject(:knight) { described_class.new('black', [0, 1])}
 
     it 'should return [[2, 2], [2, 0]] when position is [0, 1]' do
-      expect(knight.set_moves(board)).to eql([[2, 2], [2, 0]])
+      expect(knight.all_moves(board)).to eql([[2, 2], [2, 0]])
     end
   end
 end

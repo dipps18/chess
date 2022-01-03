@@ -25,6 +25,7 @@ class Pawn
     @pos = coordinates[@@count]
     @@count += 1
     @color = color
+    @next_moves = []
     @sym = sym
     @enpossible = false
   end
@@ -41,24 +42,23 @@ class Pawn
     moves = []
     origin, offset_y, opp_pawns, opp_color = (@color == 'black') ? [1, 1, board.white[:pawns], 'white'] : [6, -1, board.black[:pawns], 'black']
     if board.cell_empty?([@pos[0] + offset_y, @pos[1]])
-      moves.push([@pos[0] + offset_y, @pos[1]]) 
+      moves.push([@pos[0] + offset_y, @pos[1]])
       moves.push([@pos[0] + (2 * offset_y) , @pos[1]]) if @pos[0] == origin && board.cell_empty?([@pos[0] + 2 * offset_y, @pos[1]])
     end
     [1, -1].each do |offset_x|
       diagonal = [@pos[0] + offset_y, @pos[1] + offset_x]
-      moves << diagonal if !board.out_of_bounds?(diagonal) && (board.piece_in_cell?(opp_color, diagonal) || enpassant?(diagonal, opp_pawns))
+      moves << diagonal if !board.out_of_bounds?(diagonal) && (board.piece_in_cell?(opp_color, diagonal) || enpassant?([@pos[0], @pos[1] + offset_x], opp_pawns))
     end
     moves
   end
 
 
   def self.origin(input, destination, pieces)
-    pawns = pieces[:pawns]
-    condition = Board.capture?(input) ? proc{|pawn| pawn.pos == [destination[0] - 1, input[0].ord - 97] } : proc{ |pawn| pawn.next_moves.include?(destination) }
-    pawns = pawns.select{ |pawn| condition.call(pawn) }
+    pawns = pieces[:pawns].select{ |pawn| pawn.next_moves.include?(destination) }
     if pawns.length != 0
-      @enpossible = true if pawns[0].pos[0] - destination[0] == 2 
-      return pawns[0].pos 
+      pawns = pawns.select{|pawn| pawn.pos[1] == Board.column(input[0])}
+      @enpossible = true if !pawns.empty? && pawns[0].pos[0] - destination[0] == 2
+      return pawns[0].pos unless pawns.empty?
     end
   end
 end
