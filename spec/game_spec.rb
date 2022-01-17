@@ -329,7 +329,45 @@ describe Game do
     
 
     context 'When queen castling is possible' do
-      
+      context 'When color is black' do
+        it 'should return true' do
+          pawn_old_pos = Board.coordinates('c7')
+          pawn_new_pos = Board.coordinates('c5')
+          bishop_new_pos = Board.coordinates('f5')
+          knight_new_pos = Board.coordinates('c6')
+          queen_new_pos = Board.coordinates('d5')
+          game.board.black[:pawns].each do |pawn|
+            pawn.pos = pawn_new_pos if pawn.pos == pawn_old_pos
+          end
+          game.board.black[:bishops][1].pos = bishop_new_pos
+          game.board.black[:knights][1].pos = knight_new_pos
+          game.board.black[:queen][0].pos = queen_new_pos
+          game.board.update_cells
+          game.board.display_board
+          game.board.update_next_moves
+          expect(game.can_castle?('O-O', 'black')).to eql(true)
+        end
+      end
+
+      context 'When color is white' do
+        it 'should return true' do
+          pawn_old_pos = Board.coordinates('c2')
+          pawn_new_pos = Board.coordinates('c4')
+          bishop_new_pos = Board.coordinates('f4')
+          knight_new_pos = Board.coordinates('c3')
+          queen_new_pos = Board.coordinates('d5')
+          game.board.white[:pawns].each do |pawn|
+            pawn.pos = pawn_new_pos if pawn.pos == pawn_old_pos
+          end
+          game.board.white[:bishops][1].pos = bishop_new_pos
+          game.board.white[:knights][1].pos = knight_new_pos
+          game.board.white[:queen][0].pos = queen_new_pos
+          game.board.update_cells
+          game.board.update_next_moves
+          game.board.display_board
+          expect(game.can_castle?('O-O', 'white')).to eql(true)
+        end
+      end
     end
   end
 end
