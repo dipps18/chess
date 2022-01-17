@@ -154,7 +154,7 @@ class Board
     return nil unless destination.match?(/[a-h][1-8]/)
     destination = Board.coordinates(destination)
     return nil if Board.capture?(input) && !piece_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 
-    return nil if !Board.capture?(input) && !cell_empty?(destination)
+    return nil if !Board.capture?(input) && !squares_empty?(destination)
 		return destination
   end
 
@@ -173,15 +173,19 @@ class Board
 		pieces.include?(@cells[pos[0]][pos[1]])
 	end
 
-	def cell_empty?(position)
-		return true if position == nil
-		@cells[position[0]][position[1]] == "   "
+	def squares_empty?(positions)
+		return true if positions == nil
+		if positions.all?{ |position| position.kind_of?(Array) }
+			positions.all?{|position| @cells[position[0]][position[1]] == "   " }
+		else
+			@cells[positions[0]][positions[1]] == "   "
+		end
 	end
 
 	def valid_cells(next_pos, color, offset, index = nil, cur_pos = nil)
 		cells = []
 		loop do
-			break if out_of_bounds?(next_pos) || piece_in_cell?(color, next_pos) || !cell_empty?(cur_pos)
+			break if out_of_bounds?(next_pos) || piece_in_cell?(color, next_pos) || !squares_empty?(cur_pos)
       cells.push(next_pos.dup)
 			cur_pos = cells[-1]
 			if index == nil

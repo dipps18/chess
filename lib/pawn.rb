@@ -41,9 +41,9 @@ class Pawn
   def all_moves(board) #returns all moves which also include invalid moves like allowing a pinned piece to move putting the king in check
     moves = []
     origin, offset_y, opp_pawns, opp_color = (@color == 'black') ? [1, 1, board.white[:pawns], 'white'] : [6, -1, board.black[:pawns], 'black']
-    if board.cell_empty?([@pos[0] + offset_y, @pos[1]])
+    if board.squares_empty?([@pos[0] + offset_y, @pos[1]])
       moves.push([@pos[0] + offset_y, @pos[1]])
-      moves.push([@pos[0] + (2 * offset_y) , @pos[1]]) if @pos[0] == origin && board.cell_empty?([@pos[0] + 2 * offset_y, @pos[1]])
+      moves.push([@pos[0] + (2 * offset_y) , @pos[1]]) if @pos[0] == origin && board.squares_empty?([@pos[0] + 2 * offset_y, @pos[1]])
     end
     [1, -1].each do |offset_x|
       diagonal = [@pos[0] + offset_y, @pos[1] + offset_x]

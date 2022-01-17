@@ -113,18 +113,17 @@ class Game
     end
   end
 
+
+
   def can_castle?(input, color)
     king = color == 'black' ? @board.black[:king][0] : @board.white[:king][0]
+    opp_pieces = color == 'black' ? @board.white : @board.black
     rook = castling_rooks(input, color)
     squares = castling_squares(input, color)
-    opp_pieces = color == 'black' ? @board.white : @board.black
     sq_coord = Board.coordinates(squares)
-    rook = castling_rooks(input, color)
     return false if squares_check?(opp_pieces, sq_coord)
     return false if rook.moved == true || king.moved == true
-    sq_coord.each do |coord|
-      return false unless @board.cells[coord[0]][coord[1]] == "   "
-    end
+    return false unless board.squares_empty?(sq_coord)
     return true
   end
 
