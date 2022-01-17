@@ -113,11 +113,9 @@ class Game
     end
   end
 
-
-
   def can_castle?(input, color)
-    king = color == 'black' ? @board.black[:king][0] : @board.white[:king][0]
     opp_pieces = color == 'black' ? @board.white : @board.black
+    king = color == 'black' ? @board.black[:king][0] : @board.white[:king][0]
     rook = castling_rooks(input, color)
     squares = castling_squares(input, color)
     sq_coord = Board.coordinates(squares)

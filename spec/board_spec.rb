@@ -15,16 +15,16 @@ describe Board do
     
   end
 
-  describe '#cell_empty' do
+  describe '#squares_empty' do
     subject(:board) { described_class.new }
     it 'should return true when position is empty' do
       position = [2, 0]
-      expect(board.cell_empty?(position)).to eql(true)
+      expect(board.squares_empty?(position)).to eql(true)
     end
 
     it 'should return false when position is occupied' do
       position = [0, 0]
-      expect(board.cell_empty?(position)).to eql(false)
+      expect(board.squares_empty?(position)).to eql(false)
     end
   end
 

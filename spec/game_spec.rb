@@ -165,7 +165,7 @@ describe Game do
   end
 
   describe '#can_castle?' do
-    context 'When castling is not possible' do
+    context 'When king side castling is not possible' do
       context 'When color of player castling is black' do
         it 'should return false when pieces b/w king and rook' do
           expect(game.can_castle?('O-O', 'black')).to eql(false)
@@ -225,7 +225,7 @@ describe Game do
       end
     end
     
-    context 'When castling is possible' do
+    context 'When king castling is possible' do
       context 'When color is black' do
         it 'should return true' do
           pawn_old_pos = Board.coordinates('f7')
@@ -261,6 +261,75 @@ describe Game do
           expect(game.can_castle?('O-O', 'white')).to eql(true)
         end
       end
+    end
+
+    context 'When queen castling is not possible' do
+      context 'When castling color is black' do
+        it 'should return false when pieces b/w king and rook' do
+          expect(game.can_castle?('O-O-O', 'black')).to eql(false)
+        end
+
+        it 'should return false when king passes through a square which is in check' do
+          bish_pos = Board.coordinates('f4') #checking bishop
+          pawn_old_pos = Board.coordinates('c7')
+          pawn_new_pos = Board.coordinates('c5')
+          bishop_new_pos = Board.coordinates('f5')
+          knight_new_pos = Board.coordinates('c6')
+          queen_new_pos = Board.coordinates('d5')
+          game.board.black[:pawns].each do |pawn|
+            pawn.pos = pawn_new_pos if pawn.pos == pawn_old_pos
+          end
+          game.board.black[:bishops][1].pos = bishop_new_pos
+          game.board.white[:bishops][0].pos = bish_pos
+          game.board.black[:knights][1].pos = knight_new_pos
+          game.board.black[:queen][0].pos = queen_new_pos
+          game.board.update_cells
+          game.board.display_board
+          game.board.update_next_moves
+          expect(game.can_castle?('O-O-O', 'black')).to eql(false)
+        end
+
+        it 'should return false when king or rook have moved' do
+          game.board.black[:king][0].moved = true
+          expect(game.can_castle?('O-O-O','black')).to eql(false)
+        end
+      end
+
+      context 'When color is white' do
+        it 'should return false when pieces b/w king and rook' do
+          expect(game.can_castle?('O-O-O', 'white')).to eql(false)
+        end
+
+        it 'should return false when king passes through a square which is in check' do
+          bish_pos = Board.coordinates('f5') #checking bishop
+          pawn_old_pos = Board.coordinates('c2')
+          pawn_new_pos = Board.coordinates('c4')
+          bishop_new_pos = Board.coordinates('f4')
+          knight_new_pos = Board.coordinates('c3')
+          queen_new_pos = Board.coordinates('d5')
+          game.board.white[:pawns].each do |pawn|
+            pawn.pos = pawn_new_pos if pawn.pos == pawn_old_pos
+          end
+          game.board.white[:bishops][1].pos = bishop_new_pos
+          game.board.black[:bishops][0].pos = bish_pos
+          game.board.white[:knights][1].pos = knight_new_pos
+          game.board.white[:queen][0].pos = queen_new_pos
+          game.board.update_cells
+          game.board.update_next_moves
+          game.board.display_board
+          expect(game.can_castle?('O-O-O','white')).to eql(false)
+        end
+
+        it 'should return false when king or rook have moved' do
+          game.board.white[:rooks][1].moved = true
+          expect(game.can_castle?('O-O-O','white')).to eql(false)
+        end
+      end
+    end
+    
+
+    context 'When queen castling is possible' do
+      
     end
   end
 end
