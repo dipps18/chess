@@ -1,9 +1,10 @@
 class Rook
-  attr_accessor :pos, :sym, :next_moves
+  attr_accessor :pos, :sym, :next_moves, :moved
 	attr_reader :color
 
   @@count = 0
 	def initialize(color, pos = nil)
+		@moved = false
     @@count -= 2 if @@count == 2
     @color = color
 		coordinates, @sym = color == 'black' ? [[[0, 0], [0, 7]], " \u2656 "] : [[[7, 0], [7, 7]], " \u265C "]

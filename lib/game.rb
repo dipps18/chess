@@ -52,7 +52,7 @@ class Game
   def update(input, color)
     board.update_next_moves
     origin, destination = extract_input(input, color)
-    @board.update_pieces(destination, color) if input.include?('x')
+    @board.remove_piece(destination, color) if input.include?('x')
     @board.update_position(destination, origin)
     @board.update_cells
     update_screen
@@ -84,9 +84,48 @@ class Game
     return false unless pawn_move?(input) || king_move?(input) || piece_move?(input)
     piece_string = piece(input)
     color_pieces, opp_color = color == 'white' ? [@board.white, 'black'] : [@board.black, 'white']
+    return true if input.match?(/^O-O-?O?/) && can_castle?(piece, color)
     destination = @board.destination(input, opp_color)
-    origin = Object.const_get(piece_string).origin(input, destination, color_pieces)
-    origin && destination && @board.valid_move?(destination, origin, color, Board.capture?(input))
+    origin = Object.const_get(piece_string).origin(input,  destination, color_pieces)
+    piece = @board.pieces.select{|piece| piece.pos == origin}[0]
+    origin && destination && @board.valid_move?(destination, origin, color, Board.capture?(input), piece)
+  end
+
+  def castling_squares(input, color)
+    if input == 'O-O'
+      return color == 'black' ? ['f8', 'g8'] : ['f1', 'g1']
+    elsif input == 'O-O-O'
+      return color == 'black' ? ['b8', 'c8', 'd8'] : ['b1', 'c1', 'd1']
+    end
+  end
+
+  def castling_rooks(input, color)
+    if input == 'O-O'
+      return color == 'black' ? @board.black[:rooks][1] : @board.white[:rooks][1]
+    elsif input == 'O-O-O'
+      return color == 'black' ? @board.black[:rooks][0] : @board.white[:rooks][0]
+    end
+  end
+
+  def squares_check?(pieces, coordinates)
+    pieces.values.flatten.any? do |piece|
+      (piece.next_moves - coordinates).length < piece.next_moves.length
+    end
+  end
+
+  def can_castle?(input, color)
+    king = color == 'black' ? @board.black[:king][0] : @board.white[:king][0]
+    rook = castling_rooks(input, color)
+    squares = castling_squares(input, color)
+    opp_pieces = color == 'black' ? @board.white : @board.black
+    sq_coord = Board.coordinates(squares)
+    rook = castling_rooks(input, color)
+    return false if squares_check?(opp_pieces, sq_coord)
+    return false if rook.moved == true || king.moved == true
+    sq_coord.each do |coord|
+      return false unless @board.cells[coord[0]][coord[1]] == "   "
+    end
+    return true
   end
 
   def pawn_move?(input)
@@ -102,6 +141,7 @@ class Game
   end
 
   def piece(input)
+
     return "Pawn" if input[0].match?(/[a-h]/)
     return "Queen" if input[0] == 'Q'
     return "King" if input[0] == 'K'

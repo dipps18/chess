@@ -227,6 +227,7 @@ describe Board do
         board.black[:bishops][0].pos = bishop_pos
         board.cells[bishop_pos[0]][bishop_pos[1]] = board.black[:bishops][0].sym
         board.update_next_moves
+        board.display_board
       end
 
       it 'should return false when origin is d2' do
@@ -234,26 +235,27 @@ describe Board do
         destination = Board.coordinates('d4')
         color = 'white'
         piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
-        expect(board.valid_move?(destination, origin, color)).to eql(false)
-
+        expect(board.valid_move?(destination, origin, color, false, piece[0])).to eql(false)
       end
+    end
 
+    context 'When it is a valid move' do
       it 'should return true when origin is c2' do
         origin = Board.coordinates('c2')
         destination = Board.coordinates('c4')
         color = 'white'
         piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
-        expect(board.valid_move?(destination, origin, color)).to eql(true)
+        board.display_board
+        expect(board.valid_move?(destination, origin, color, false, piece[0])).to eql(true)
       end
-    end
 
-    context 'When it is a valid move' do
       it 'should return true when origin is d2' do
         origin = Board.coordinates('d2')
         destination = Board.coordinates('d4')
         color = 'white'
+        board.display_board
         piece = board.white[:pawns].select{ |pawn| pawn.pos == origin }
-        expect(board.valid_move?(destination, origin, color)).to eql(true)
+        expect(board.valid_move?(destination, origin, color, false, piece[0])).to eql(true)
       end
     end
   end

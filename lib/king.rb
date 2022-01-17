@@ -1,9 +1,10 @@
 class King
-  attr_accessor :sym, :next_moves, :pos
+  attr_accessor :sym, :next_moves, :pos, :moved
 	attr_reader :color
 
   def initialize(color)
 		@color = color
+		@moved = false
 		@next_moves = []
 		@pos, @sym = color == 'black' ? [[0, 4], " \u2654 "] : [[7, 4], " \u265A "]
 	end

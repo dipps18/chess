@@ -34,9 +34,9 @@ class Pawn
     pawns.any?{ |pawn| pawn.enpossible if pawn.pos == position }
   end
 
-  def valid_moves(moves)
-    moves.select{|move| valid_move?(move, @pos, self, @color) }
-  end
+  # def valid_moves(moves)
+  #   moves.select{|move| valid_move?(move, @pos, self, @color) }
+  # end
 
   def all_moves(board) #returns all moves which also include invalid moves like allowing a pinned piece to move putting the king in check
     moves = []
@@ -57,7 +57,7 @@ class Pawn
     pawns = pieces[:pawns].select{ |pawn| pawn.next_moves.include?(destination) }
     if pawns.length != 0
       pawns = pawns.select{|pawn| pawn.pos[1] == Board.column(input[0])}
-      @enpossible = true if !pawns.empty? && pawns[0].pos[0] - destination[0] == 2
+      pawns[0].enpossible = true if !pawns.empty? && (pawns[0].pos[0] - destination[0]).abs == 2
       return pawns[0].pos unless pawns.empty?
     end
   end
