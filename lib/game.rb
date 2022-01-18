@@ -49,14 +49,6 @@ class Game
     @board.checkmate?(color) || @board.stalemate?
   end
 
-  def castle(input, color)
-    king = color == 'white' ? @board.white[:king][0] : @board.black[:king][0]
-    rook = castling_rooks(input, color)
-    squares = castling_squares(input, color)
-    king.pos = squares[1]
-    rook.pos = squares[0]
-  end
-
   def update(input, color)
     board.update_next_moves
     if input == 'O-O-O' || input == 'O-O'
@@ -103,6 +95,15 @@ class Game
     origin && destination && @board.valid_move?(destination, origin, color, Board.capture?(input), piece)
   end
 
+  def castle(input, color)
+    king = color == 'white' ? @board.white[:king][0]: @board.black[:king][0]
+    rook = castling_rooks(input, color)
+    byebug
+    squares = Board.coordinates(castling_squares(input, color))
+    king.pos = squares[1]
+    rook.pos = input == 'O-O' ? squares[0] : squares[2]
+  end
+
   def castling_squares(input, color)
     if input == 'O-O'
       return color == 'black' ? ['f8', 'g8'] : ['f1', 'g1']
@@ -131,7 +132,7 @@ class Game
     rook = castling_rooks(input, color)
     squares = castling_squares(input, color)
     sq_coord = Board.coordinates(squares)
-    return false if check?(color)
+    return false if @board.check?(color)
     return false if squares_check?(opp_pieces, sq_coord)
     return false if rook.moved == true || king.moved == true
     return false unless board.squares_empty?(sq_coord)

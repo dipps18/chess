@@ -1,6 +1,6 @@
 require_relative '../lib/game'
 require_relative '../lib/board'
-
+require 'byebug'
 describe Game do
   subject(:game) { described_class.new }
 
@@ -11,12 +11,40 @@ describe Game do
       expect{ game.update('e4', 'white') }.to change{ game.board.white[:pawns][4].pos}.from(initial).to(final)
     end
 
+    it 'should update position of the white king for king side castle' do
+      game.board.remove_piece(Board.coordinates('f1'), 'white')
+      game.board.remove_piece(Board.coordinates('g1'), 'white')
+      game.board.update_next_moves
+      old_pos = Board.coordinates('e1')
+      new_pos = Board.coordinates('g1')
+      expect{ game.update('O-O', 'white') }.to change{ game.board.white[:king][0].pos}.from(old_pos).to(new_pos)
+    end
+
+    it 'should update position of the white king for queen side castle' do
+      game.board.remove_piece(Board.coordinates('b1'), 'white')
+      game.board.remove_piece(Board.coordinates('c1'), 'white')
+      game.board.remove_piece(Board.coordinates('d1'), 'white')
+      game.board.update_next_moves
+      old_pos = Board.coordinates('e1')
+      new_pos = Board.coordinates('c1')
+      expect{ game.update('O-O-O', 'white') }.to change{ game.board.white[:king][0].pos }.from(old_pos).to(new_pos)
+    end
+
+    it 'should update position of the white rook for queen side castle' do
+      game.board.remove_piece(Board.coordinates('b1'), 'white')
+      game.board.remove_piece(Board.coordinates('c1'), 'white')
+      game.board.remove_piece(Board.coordinates('d1'), 'white')
+      game.board.update_next_moves
+      old_pos = Board.coordinates('a1')
+      new_pos = Board.coordinates('d1')
+      expect{ game .update('O-O-O', 'white') }.to change{ game.board.white[:rooks][0].pos }.from(old_pos).to(new_pos)
+    end
+
     it 'should update position of black pawn to e5' do
       initial =  Board.coordinates('e7')
       final = Board.coordinates('e5')
       expect{ game.update('e5', 'black') }.to change{ game.board.black[:pawns][4].pos}.from(initial).to(final)
     end
-
   end
 
   describe '#pawn_move' do
@@ -339,13 +367,13 @@ describe Game do
           game.board.black[:pawns].each do |pawn|
             pawn.pos = pawn_new_pos if pawn.pos == pawn_old_pos
           end
-          game.board.black[:bishops][1].pos = bishop_new_pos
-          game.board.black[:knights][1].pos = knight_new_pos
+          game.board.black[:bishops][0].pos = bishop_new_pos
+          game.board.black[:knights][0].pos = knight_new_pos
           game.board.black[:queen][0].pos = queen_new_pos
           game.board.update_cells
           game.board.display_board
           game.board.update_next_moves
-          expect(game.can_castle?('O-O', 'black')).to eql(true)
+          expect(game.can_castle?('O-O-O', 'black')).to eql(true)
         end
       end
 
@@ -359,13 +387,13 @@ describe Game do
           game.board.white[:pawns].each do |pawn|
             pawn.pos = pawn_new_pos if pawn.pos == pawn_old_pos
           end
-          game.board.white[:bishops][1].pos = bishop_new_pos
-          game.board.white[:knights][1].pos = knight_new_pos
+          game.board.white[:bishops][0].pos = bishop_new_pos
+          game.board.white[:knights][0].pos = knight_new_pos
           game.board.white[:queen][0].pos = queen_new_pos
           game.board.update_cells
           game.board.update_next_moves
           game.board.display_board
-          expect(game.can_castle?('O-O', 'white')).to eql(true)
+          expect(game.can_castle?('O-O-O', 'white')).to eql(true)
         end
       end
     end
