@@ -14,7 +14,7 @@ class Game
     loop do
       puts "Player #{id + 1}, make your move"
       input = input(color)
-      byebug if input == 'Bxa2'
+      byebug if input == 'Be6'
       # byebug if input == 'O-O'
       update(input, color)
       id = update_id(id)
