@@ -85,7 +85,7 @@ class Game
   end
 
   def valid_input(input, color)
-    return true if castle?(input) && can_castle?(input, color)
+    return tre4ue if castle?(input) && can_castle?(input, color)
     return false unless pawn_move?(input) || king_move?(input) || piece_move?(input)
     piece_string = piece(input)
     color_pieces, opp_color = color == 'white' ? [@board.white, 'black'] : [@board.black, 'white']
@@ -168,5 +168,5 @@ class Game
   end
 end
 
-# game = Game.new
-# game.play
+game = Game.new
+game.play

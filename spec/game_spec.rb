@@ -158,7 +158,7 @@ describe Game do
 
     it 'should reduce the size of pieces by 1' do
       allow(game).to receive(:gameover?).and_return(false, false, false, false, false, true)
-      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5+', 'Bd7', 'a3', 'Bxb5')
+      allow(game).to receive(:gets).and_return('e4', 'd5', 'Bb5+', 'Bd7', 'a3', 'Bxb5')
       expect{game.play}.to change{game.board.white[:bishops].length}.from(2).to(1)
     end
 

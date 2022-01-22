@@ -92,6 +92,7 @@ class Board
 		return false if !input.include?('+') && check?(opp_color)
 		return false if input.include?('#') && !checkmate?(opp_color)
 		return false if !input.include?('#') && checkmate?(opp_color)
+		return true
 	end
 
 	def add_piece(position, piece_type, color, piece)
