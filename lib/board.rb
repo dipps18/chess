@@ -173,8 +173,8 @@ class Board
   end
 
 	def destination(input, opp_color)
-	
-    destination = input[-1].match?(/[#|+]/) ? input[-3..-2] : input[-2..-1]
+		# if Game.promtion?(input)
+    destination = input[-1].match?(/[#+]/) ? input[-3..-2] : input[-2..-1]
     return nil unless destination.match?(/[a-h][1-8]/)
     destination = Board.coordinates(destination)
     return nil if Board.capture?(input) && !color_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 

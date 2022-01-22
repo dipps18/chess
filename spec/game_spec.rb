@@ -50,66 +50,66 @@ describe Game do
   describe '#pawn_move' do
     it 'should return true when input is a4' do
       input = 'a4'
-      expect(game.pawn_move?(input)).to eql(true)
+      expect(Game.pawn_move?(input)).to eql(true)
     end
 
     it 'should return true when input is axb2' do
       input = 'axb2'
-      expect(game.pawn_move?(input)).to eql(true)
+      expect(Game.pawn_move?(input)).to eql(true)
     end
 
     it 'should return false when input is aa2' do
       input = 'aa2'
-      expect(game.pawn_move?(input)).to eql(false)
+      expect(Game.pawn_move?(input)).to eql(false)
     end
   end
 
   describe '#king_move' do
     it 'should return true when input is Ka4' do
       input = 'Ka4'
-      expect(game.king_move?(input)).to eql(true)
+      expect(Game.king_move?(input)).to eql(true)
     end
 
     it 'should return true when input is Kxb2' do
       input = 'Kxb2'
-      expect(game.king_move?(input)).to eql(true)
+      expect(Game.king_move?(input)).to eql(true)
     end
 
     it 'should return false when input is Kx2' do
       input = 'Kx2'
-      expect(game.king_move?(input)).to eql(false)
+      expect(Game.king_move?(input)).to eql(false)
     end
   end
 
   describe '#piece_move?' do
     it 'should return true when input is Nc4' do
       input = 'Nc4'
-      expect(game.piece_move?(input)).to eql(true)
+      expect(Game.piece_move?(input)).to eql(true)
     end
 
     it 'should return true when input is Nxc4' do
       input = 'Nxc4'
-      expect(game.piece_move?(input)).to eql(true)
+      expect(Game.piece_move?(input)).to eql(true)
     end
 
     it 'should return true when input is N3xc4' do
       input = 'N3xc4'
-      expect(game.piece_move?(input)).to eql(true)
+      expect(Game.piece_move?(input)).to eql(true)
     end
 
     it 'should return true when input is Ndc4' do
       input = 'Ndc4'
-      expect(game.piece_move?(input)).to eql(true)
+      expect(Game.piece_move?(input)).to eql(true)
     end
     
     it 'should return true when input is Ndxc4' do
       input = 'N3xc4'
-      expect(game.piece_move?(input)).to eql(true)
+      expect(Game.piece_move?(input)).to eql(true)
     end
 
     it 'should return true when input is Nba4' do
       input = 'Nba4'
-      expect(game.piece_move?(input)).to eql(true)
+      expect(Game.piece_move?(input)).to eql(true)
     end
 
   end
@@ -117,8 +117,7 @@ describe Game do
 
   describe '#input' do
     context 'When the input is right' do
-  
-      it 'should return input' do
+        it 'should return input' do
         input = 'a4'
         allow(game).to receive(:gets).and_return(input)
         expect(game.input('white')).to eql(input)
@@ -158,7 +157,7 @@ describe Game do
 
     it 'should reduce the size of pieces by 1' do
       allow(game).to receive(:gameover?).and_return(false, false, false, false, false, true)
-      allow(game).to receive(:gets).and_return('e4', 'd5', 'Bb5+', 'Bd7', 'a3', 'Bxb5')
+      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5+', 'Bd7', 'a3', 'Bxb5')
       expect{game.play}.to change{game.board.white[:bishops].length}.from(2).to(1)
     end
 

@@ -85,8 +85,8 @@ class Game
   end
 
   def valid_input(input, color)
-    return tre4ue if castle?(input) && can_castle?(input, color)
-    return false unless pawn_move?(input) || king_move?(input) || piece_move?(input)
+    return true if Game.castle?(input) && can_castle?(input, color)
+    return false unless Game.pawn_move?(input) || Game.king_move?(input) || Game.piece_move?(input)
     piece_string = piece(input)
     color_pieces, opp_color = color == 'white' ? [@board.white, 'black'] : [@board.black, 'white']
     dest = @board.destination(input, opp_color)
@@ -142,19 +142,19 @@ class Game
     return true
   end
 
-  def pawn_move?(input)
+  def self.pawn_move?(input)
     /^[a-h][1-8][+#]{,1}$/.match?(input) || /^[a-h]x[a-h][1-8][+#]{,1}$/.match?(input)
   end
 
-  def castle?(input)
+  def self.castle?(input)
     /^O-O[+#]{,1}$|^O-O-O[+#]{,1}$/.match?(input)
   end
 
-  def king_move?(input)
+  def self.king_move?(input)
     /^Kx{,1}[a-h][1-8][+#]{,1}$/.match?(input)
   end
 
-  def piece_move?(input) # checks if the piece intended to move is a queen, bishop, rook or knight
+  def self.piece_move?(input) # checks if the piece intended to move is a queen, bishop, rook or knight
     /^[QRNB][[a-h][1-8]]{,1}x{,1}[a-h][1-8][+#]{,1}$/.match?(input)
   end
 
@@ -168,5 +168,5 @@ class Game
   end
 end
 
-game = Game.new
-game.play
+# game = Game.new
+# game.play
