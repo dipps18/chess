@@ -30,8 +30,8 @@ class Board
 
 	def remove_piece(position, color)
 		opp_color = color == 'black' ? @white : @black
-		@pieces.delete_if{ |piece| piece.pos == position }
 		opp_color.each{ |piece_type, pieces| pieces.delete_if{|piece| piece.pos == position }}
+		@pieces.delete_if{ |piece| piece.pos == position }
 	end
 
   def update_cells
@@ -59,22 +59,43 @@ class Board
 	end
 
 
-	def valid_move?(destination, origin, color, capture = false, piece = nil)
+	def valid_move?(destination, origin, color, capture = false, piece = nil, input = nil)
 		return false if piece && !piece.next_moves.include?(destination)
-		opp_color_pieces = color == 'white' ? @black : @white
+		opp_color = color == 'white' ? 'black' : 'white'
 		if capture == true
-			piece_type = opp_color_pieces.map{|piece_type, pieces| piece_type if pieces.any?{|piece| piece.pos == destination}}.compact[0]
-			captured_piece = opp_color_pieces.values.flatten.select{|piece| piece.pos == destination}[0].dup
-			remove_piece(destination, color)	
+			piece_type = piece_type(opp_color, destination)
+			captured_piece = captured_piece(opp_color, destination)
+			remove_piece(destination, color)
 		end
 		change_position(piece, destination)
-		valid_move = check?(color) ? false : true
-		add_piece(destination, piece_type, opp_color_pieces, captured_piece) if capture
+		valid_move = valid_notation?(input, opp_color) && !check?(color)
+		add_piece(destination, piece_type, opp_color, captured_piece) if capture
 		change_position(piece, origin)
 		valid_move
 	end
 
-	def add_piece(position, piece_type, pieces, piece)
+	def captured_piece(color, destination)
+		pieces = color == 'white' ? @white : @black
+		pieces.values.flatten.select{|piece| piece.pos == destination}[0]
+	end
+
+	def piece_type(color, destination)
+		pieces = color == 'white' ? @white : @black
+		pieces.map do |piece_type, pieces| 
+			piece_type if pieces.any?{|piece| piece.pos == destination}
+		end.compact[0]
+	end
+
+	def valid_notation?(input, opp_color)
+		return true unless input && input.match?(/[+#]/)
+		return false if input.include?('+') && !check?(opp_color)
+		return false if !input.include?('+') && check?(opp_color)
+		return false if input.include?('#') && !checkmate?(opp_color)
+		return false if !input.include?('#') && checkmate?(opp_color)
+	end
+
+	def add_piece(position, piece_type, color, piece)
+		pieces = color == 'white' ? @white : @black
 		pieces[piece_type].push(piece)
 		@pieces.push(piece)
 	end
@@ -151,7 +172,8 @@ class Board
   end
 
 	def destination(input, opp_color)
-    destination = input[-2..-1]
+	
+    destination = input[-1].match?(/[#|+]/) ? input[-3..-2] : input[-2..-1]
     return nil unless destination.match?(/[a-h][1-8]/)
     destination = Board.coordinates(destination)
     return nil if Board.capture?(input) && !color_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 

@@ -14,12 +14,10 @@ class Game
     loop do
       puts "Player #{id + 1}, make your move"
       input = input(color)
-      byebug if input == 'Be6'
-      # byebug if input == 'O-O'
       update(input, color)
       id = update_id(id)
       color = id == 0 ? 'white' : 'black'
-      resest_enpassant(color) #resets enpossible for previous color
+      resest_enpassant(color)
       break if gameover?(color)
     end
     puts result
@@ -91,10 +89,11 @@ class Game
     return false unless pawn_move?(input) || king_move?(input) || piece_move?(input)
     piece_string = piece(input)
     color_pieces, opp_color = color == 'white' ? [@board.white, 'black'] : [@board.black, 'white']
-    destination = @board.destination(input, opp_color)
-    origin = Object.const_get(piece_string).origin(input,  destination, color_pieces)
+    dest = @board.destination(input, opp_color)
+    origin = Object.const_get(piece_string).origin(input,  dest, color_pieces)
     piece = @board.pieces.select{|piece| piece.pos == origin}[0]
-    origin && destination && @board.valid_move?(destination, origin, color, Board.capture?(input), piece)
+    capture = Board.capture?(input)
+    origin && dest && @board.valid_move?(dest, origin, color, capture, piece, input)
   end
 
   def castle(input, color)
@@ -104,6 +103,7 @@ class Game
     king.pos = squares[1]
     rook.pos = input == 'O-O' ? squares[0] : squares[2]
   end
+  
   def castling_squares(input, color)
     if input == 'O-O'
       return color == 'black' ? ['f8', 'g8'] : ['f1', 'g1']
@@ -143,19 +143,19 @@ class Game
   end
 
   def pawn_move?(input)
-    /^[a-h][1-8]$/.match?(input) || /^[a-h]x[a-h][1-8]$/.match?(input)
+    /^[a-h][1-8][+#]{,1}$/.match?(input) || /^[a-h]x[a-h][1-8][+#]{,1}$/.match?(input)
   end
 
   def castle?(input)
-    /^O-O$|^O-O-O$/.match?(input)
+    /^O-O[+#]{,1}$|^O-O-O[+#]{,1}$/.match?(input)
   end
 
   def king_move?(input)
-    /^Kx{,1}[a-h][1-8]$/.match?(input)
+    /^Kx{,1}[a-h][1-8][+#]{,1}$/.match?(input)
   end
 
   def piece_move?(input) # checks if the piece intended to move is a queen, bishop, rook or knight
-    /^[QRNB][[a-h][1-8]]{,1}x{,1}[a-h][1-8]$/.match?(input)
+    /^[QRNB][[a-h][1-8]]{,1}x{,1}[a-h][1-8][+#]{,1}$/.match?(input)
   end
 
   def piece(input)

@@ -148,16 +148,17 @@ describe Game do
     #   expect{ game.play }.to change{ game.board.white[:pawns][1].pos }.from(b2).to(b4)
     # end
 
-    it 'should reduce the size of pieces by 1' do
-      allow(game).to receive(:gameover?).and_return(false, false, false, false, false, true)
-      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5', 'Bd7', 'a3', 'Bxb5')
-      length = game.board.pieces.length
-      expect{ game.play }.to change{ game.board.pieces.length }.from(length).to(length - 1)
-    end
+    # it 'should reduce the size of pieces by 1' do
+    #   allow(game).to receive(:gameover?).and_return(false, false, false, false, false, true)
+    #   byebug
+    #   allow(game).to receive(:gets).and_return('e4', 'd5', 'Bb5', 'Bd7', 'a3', 'Bxb5')
+    #   length = game.board.pieces.length
+    #   expect{ game.play }.to change{ game.board.pieces.length }.from(length).to(length - 1)
+    # end
 
     it 'should reduce the size of pieces by 1' do
       allow(game).to receive(:gameover?).and_return(false, false, false, false, false, true)
-      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5', 'Bd7', 'a3', 'Bxb5')
+      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5+', 'Bd7', 'a3', 'Bxb5')
       expect{game.play}.to change{game.board.white[:bishops].length}.from(2).to(1)
     end
 
@@ -173,14 +174,13 @@ describe Game do
     it 'should change position of black rook to f8' do
       old_pos = Board.coordinates('h8')
       new_pos = Board.coordinates('f8')
-      allow(game).to receive(:input).and_return('d4', 'Nf6', 'c4', 'g6', 'Nc3', 'd5', 'cxd5', 'Nxd5', 'e4', 'Nxc3', 'bxc3', 'Bg7', 'Nf3', 'c5', 'Rb1', 'O-O', 'Be2', 'cxd4', 'cxd4', 'Qa5', 'Bd2', 'Qxa2', 'O-O', 'Bg4', 'Rxb7', 'Bxf3', 'Bxf3', 'Bxd4', 'Bb4', 'Rd8', 'Qc1', 'e5', 'Be7', 'Re8', 'Bf6', 'Qa6', 'Qg5','Re6', 'Bh8', 'Kxh8', 'Rxf7', 'Kg8', 'Rc7', 'Qd6', 'Rc8', 'Kg7', 'Rfc1', 'Bb6', 'Bd1', 'Qe7', 'Qg4', 'h5', 'Qh3', 'Rf6', 'Bb3', 'Rxf2', 'Kh1', 'Qf6' ,'Qd3', 'Qg5', 'Rg1', 'Rd2', 'Qc4', 'Qf6', 'Rf1', 'Rf2', 'Rxf2', 'Bxf2', 'Qg8', 'Kh6', 'Rf8', 'Qg7', 'Bd5', 'Qxg8', 'Rxg8', 'a5', 'Bxa8', 'Nd7', 'Bc6', 'Nb6', 'Be8', 'a4', 'Rxg6', 'Kh7', 'Rxb6', 'Bxb6', 'Bxh5', 'Kh6', 'Bf7', 'a3', 'g3', 'Kg5', 'Kg2', 'Kf6', 'Bd5', 'Kg5', 'h4', 'Kf6', 'Kh3', 'Bd4', 'g4', 'Kg6', 'g5', 'Bf2', 'Kg4', 'Be3', 'h5', 'Kg7', 'Kf5', 'Bf4', 'h6', 'Kh8', 'Kg6', 'Bd2', 'Kh5', 'a2', 'Bxa2', 'Be3', 'Be6', 'Bf4', 'Bd7')
-      
+      allow(game).to receive(:input).and_return('d4', 'Nf6', 'c4', 'g6', 'Nc3', 'd5', 'cxd5', 'Nxd5', 'e4', 'Nxc3', 'bxc3', 'Bg7', 'Nf3', 'c5', 'Rb1', 'O-O', 'Be2', 'cxd4', 'cxd4', 'Qa5+', 'Bd2', 'Qxa2', 'O-O', 'Bg4', 'Rxb7', 'Bxf3', 'Bxf3', 'Bxd4', 'Bb4', 'Rd8', 'Qc1', 'e5', 'Be7', 'Re8', 'Bf6', 'Qa6', 'Qg5','Re6', 'Bh8', 'Kxh8', 'Rxf7', 'Kg8', 'Rc7', 'Qd6', 'Rc8+', 'Kg7', 'Rfc1', 'Bb6', 'Bd1', 'Qe7', 'Qg4', 'h5', 'Qh3', 'Rf6', 'Bb3', 'Rxf2', 'Kh1', 'Qf6' ,'Qd3', 'Qg5', 'Rg1', 'Rd2', 'Qc4', 'Qf6', 'Rf1', 'Rf2', 'Rxf2', 'Bxf2', 'Qg8+', 'Kh6', 'Rf8', 'Qg7', 'Bd5', 'Qxg8', 'Rxg8', 'a5', 'Bxa8', 'Nd7', 'Bc6', 'Nb6', 'Be8', 'a4', 'Rxg6+', 'Kh7', 'Rxb6', 'Bxb6', 'Bxh5', 'Kh6', 'Bf7', 'a3', 'g3', 'Kg5', 'Kg2', 'Kf6', 'Bd5', 'Kg5', 'h4+', 'Kf6', 'Kh3', 'Bd4', 'g4', 'Kg6', 'g5', 'Bf2', 'Kg4', 'Be3', 'h5+', 'Kg7', 'Kf5', 'Bf4', 'h6+', 'Kh8', 'Kg6', 'Bd2', 'Kh5', 'a2', 'Bxa2', 'Be3', 'Be6', 'Bf4', 'Bd7')
       game.play
     end
 
     it 'should work nice' do
       allow(game).to receive(:gameover?).and_return(false, false, false, false, true)
-      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5', 'Bd7', 'Bxd7')
+      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5+', 'Bd7', 'Bxd7')
       expect{ game.play }.to change{ game.board.black[:bishops].length }.from(2).to(1)
     end
 
@@ -198,7 +198,7 @@ describe Game do
 
     it 'should work nice 3' do
       allow(game).to receive(:gameover?).and_return(false, false, false, false, false, true)
-      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5', 'Bd7', 'a4', 'Bxb5')
+      allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5+', 'Bd7', 'a4', 'Bxb5')
       game.play
     end
 

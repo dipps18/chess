@@ -1,3 +1,4 @@
+require 'byebug'
 class Bishop
   @@count = 0
 	attr_accessor :pos, :sym, :next_moves
