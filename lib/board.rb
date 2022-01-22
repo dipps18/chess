@@ -69,8 +69,8 @@ class Board
 		end
 		change_position(piece, destination)
 		valid_move = check?(color) ? false : true
-		change_position(piece, origin)
 		add_piece(destination, piece_type, opp_color_pieces, captured_piece) if capture
+		change_position(piece, origin)
 		valid_move
 	end
 
@@ -86,7 +86,8 @@ class Board
 	def update_next_moves # updates next moves for each piece with only valid moves
 		@pieces.each do |piece|
 			piece.next_moves = piece.all_moves(self).select do |move|
-				valid_move?(move, piece.pos, piece.color, false, piece)
+				capture = @cells[move[0]][move[1]] == "   " ? false : true
+				valid_move?(move, piece.pos, piece.color, capture, piece)
 			end
 		end
 	end
@@ -153,7 +154,7 @@ class Board
     destination = input[-2..-1]
     return nil unless destination.match?(/[a-h][1-8]/)
     destination = Board.coordinates(destination)
-    return nil if Board.capture?(input) && !piece_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 
+    return nil if Board.capture?(input) && !color_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 
     return nil if !Board.capture?(input) && !squares_empty?(destination)
 		return destination
   end
@@ -167,10 +168,14 @@ class Board
 		false
 	end
 
-	def piece_in_cell?(color, pos)
+	def color_in_cell?(color, pos) #checks if a piece of particular type is in
 		@cells[pos[0]][pos[1]]
 		pieces = color == 'black' ? @BLACK_SYMBOLS : @WHITE_SYMBOLS
 		pieces.include?(@cells[pos[0]][pos[1]])
+	end
+
+	def pieces_in_pos(pieces, pos) #returns the piece at a particular position
+		pieces.select{|piece| piece.pos == pos}[0]
 	end
 
 	def squares_empty?(positions)
@@ -185,7 +190,7 @@ class Board
 	def valid_cells(next_pos, color, offset, index = nil, cur_pos = nil)
 		cells = []
 		loop do
-			break if out_of_bounds?(next_pos) || piece_in_cell?(color, next_pos) || !squares_empty?(cur_pos)
+			break if out_of_bounds?(next_pos) || color_in_cell?(color, next_pos) || !squares_empty?(cur_pos)
       cells.push(next_pos.dup)
 			cur_pos = cells[-1]
 			if index == nil

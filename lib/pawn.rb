@@ -47,7 +47,7 @@ class Pawn
     end
     [1, -1].each do |offset_x|
       diagonal = [@pos[0] + offset_y, @pos[1] + offset_x]
-      moves << diagonal if !board.out_of_bounds?(diagonal) && (board.piece_in_cell?(opp_color, diagonal) || enpassant?([@pos[0], @pos[1] + offset_x], opp_pawns))
+      moves << diagonal if !board.out_of_bounds?(diagonal) && (board.color_in_cell?(opp_color, diagonal) || enpassant?([@pos[0], @pos[1] + offset_x], opp_pawns))
     end
     moves
   end
