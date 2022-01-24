@@ -63,8 +63,8 @@ class Board
 		return false if piece && !piece.next_moves.include?(destination)
 		opp_color = color == 'white' ? 'black' : 'white'
 		if capture == true
-			piece_type = piece_type(opp_color, destination)
-			captured_piece = captured_piece(opp_color, destination)
+			piece_type = piece_type(opp_color, input, destination)
+			captured_piece = captured_piece(opp_color, input, destination)
 			remove_piece(destination, color)
 		end
 		change_position(piece, destination)
@@ -74,15 +74,26 @@ class Board
 		valid_move
 	end
 
-	def captured_piece(color, destination)
-		pieces = color == 'white' ? @white : @black
-		pieces.values.flatten.select{|piece| piece.pos == destination}[0]
+	
+
+	def captured_piece(color, input, dest)
+		if input && enpassant?(dest, input, color)
+			piece_pos = Game.enpassant_captured_pos(color, dest)
+			piece_in_pos(piece_pos)
+		else
+			piece_in_pos(dest)
+		end
 	end
 
-	def piece_type(color, destination)
-		pieces = color == 'white' ? @white : @black
-		pieces.map do |piece_type, pieces| 
-			piece_type if pieces.any?{|piece| piece.pos == destination}
+	def piece_type(color, input, dest)
+		pieces, offset_y = color == 'white' ? [@white, -1] : [@black, 1]
+		pieces.map do |piece_type, pieces|
+			if input && enpassant?(dest, input, color)
+				piece_pos = [dest[0] + offset_y, dest[1]]
+				piece_type if pieces.any?{|piece| piece.pos == piece_pos}
+			else
+				piece_type if pieces.any?{|piece| piece.pos == dest}
+			end
 		end.compact[0]
 	end
 
@@ -115,8 +126,8 @@ class Board
 	end
 
 	def update_position(destination, origin)
-		@pieces.select{ |piece| piece.pos == origin }[0]
 		piece = @pieces.select{ |piece| piece.pos == origin }[0]
+		piece.moved = true if piece.kind_of?(King) || piece.kind_of?(Rook)
 		piece.pos = destination
 	end
 
@@ -168,25 +179,26 @@ class Board
 		coordinates
   end
 
-	def self.capture?(input)
-    input.match?('x')
-  end
-
 	def destination(input, opp_color)
-		# if Game.promtion?(input)
-    destination = input[-1].match?(/[#+]/) ? input[-3..-2] : input[-2..-1]
+    destination = input[-1].match?(/[#|+]/) ? input[-3..-2] : input[-2..-1]
     return nil unless destination.match?(/[a-h][1-8]/)
     destination = Board.coordinates(destination)
-    return nil if Board.capture?(input) && !color_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 
-    return nil if !Board.capture?(input) && !squares_empty?(destination)
+    return nil if Game.capture?(input) && !color_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 
+    return nil if !Game.capture?(input) && !squares_empty?(destination)
 		return destination
   end
 
-	def enpassant?(destination, input, opp_color)
-		pawn_sym = opp_color == 'black' ? @black[:pawns][0].sym : @white[:pawns][0].sym
+	def enpassant?(dest, input, opp_color)
+		if opp_color == 'black'
+			pawn_sym = @black[:pawns][0].sym
+			offset = 1
+		else
+			 pawn_sym = @white[:pawns][0].sym
+			 offset = -1
+		end
+		opp_pawn_col = Board.column(input[2])
 	  if input.match?(/^[a-h]x[a-h][1-8]$/)
-			return true if @cells[destination[0] - 1][destination[1] - 1] == pawn_sym
-			return true if @cells[destination[0] - 1][destination[1] + 1] == pawn_sym
+			return true if @cells[dest[0] + offset][opp_pawn_col] == pawn_sym
 		end
 		false
 	end
@@ -197,8 +209,8 @@ class Board
 		pieces.include?(@cells[pos[0]][pos[1]])
 	end
 
-	def pieces_in_pos(pieces, pos) #returns the piece at a particular position
-		pieces.select{|piece| piece.pos == pos}[0]
+	def piece_in_pos(pos) #returns the piece at a particular position
+		@pieces.select{|piece| piece.pos == pos}[0]
 	end
 
 	def squares_empty?(positions)

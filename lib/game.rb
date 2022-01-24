@@ -51,16 +51,25 @@ class Game
   end
 
   def update(input, color)
+    opp_color = color == 'white' ? 'black' : 'white'
     board.update_next_moves
     if input == 'O-O-O' || input == 'O-O'
       castle(input, color)
     else
-      origin, destination = extract_input(input, color)
-      @board.remove_piece(destination, color) if input.include?('x')
-      @board.update_position(destination, origin)
+      origin, dest = extract_input(input, color)
+      if Game.capture?(input)
+        pos = board.enpassant?(dest, input, opp_color) ? Game.enpassant_captured_pos(opp_color, dest) : dest
+        @board.remove_piece(pos, color)
+      end
+        @board.update_position(dest, origin)
     end
     @board.update_cells
     update_screen
+  end
+
+  def self.enpassant_captured_pos(color, capturing_pos) #returns the position of the captured pawn given the color and position of the capturing pawn
+    offset_y = color == 'white' ? -1 : 1
+    [capturing_pos[0] + offset_y, capturing_pos[1]]
   end
   
   def update_screen
@@ -92,7 +101,7 @@ class Game
     dest = @board.destination(input, opp_color)
     origin = Object.const_get(piece_string).origin(input,  dest, color_pieces)
     piece = @board.pieces.select{|piece| piece.pos == origin}[0]
-    capture = Board.capture?(input)
+    capture = Game.capture?(input)
     origin && dest && @board.valid_move?(dest, origin, color, capture, piece, input)
   end
 
@@ -114,13 +123,11 @@ class Game
 
   def castling_rooks(input, color)
     if color == 'black' 
-      rooks = @board.black[:rooks]
       rook_pos = input == 'O-O' ? 'h8' : 'a8'
     elsif color == 'white'
-      rooks = @board.white[:rooks]
       rook_pos = input == 'O-O' ? 'h1' : 'a1'
     end
-    @board.pieces_in_pos(rooks, Board.coordinates(rook_pos))
+    @board.piece_in_pos(Board.coordinates(rook_pos))
   end
 
   def squares_check?(pieces, coordinates)
@@ -142,12 +149,20 @@ class Game
     return true
   end
 
+  def self.capture?(input)
+    input.match?('x')
+  end
+
   def self.pawn_move?(input)
-    /^[a-h][1-8][+#]{,1}$/.match?(input) || /^[a-h]x[a-h][1-8][+#]{,1}$/.match?(input)
+    pawn_capture = Regexp.new(/^[a-h]x[a-h][1-8][+#]{,1}$/)
+    pawn_move = Regexp.new(/^[a-h][1-8][+#]{,1}$/)
+    pawn_capture.match?(input) || pawn_move.match?(input)
   end
 
   def self.castle?(input)
-    /^O-O[+#]{,1}$|^O-O-O[+#]{,1}$/.match?(input)
+    king_side = Regexp.new(/^O-O[+#]{,1}$/)
+    queen_side = Regexp.new(/^O-O-O[+#]{,1}$/)
+    king_side.match?(input) || queen_side.match?(input)
   end
 
   def self.king_move?(input)
@@ -168,5 +183,5 @@ class Game
   end
 end
 
-# game = Game.new
-# game.play
+game = Game.new
+game.play
