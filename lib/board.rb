@@ -28,7 +28,10 @@ class Board
 		 :king => Array.new(1){ King.new(color) } }
 	end
 
-	def remove_piece(position, color)
+	def remove_piece(position)
+		color = @pieces.map do |piece|
+			piece.color if piece.pos == position 
+		end.compact[0]
 		color_pieces = color == 'white' ? @white : @black
 		color_pieces.each{ |piece_type, pieces| pieces.delete_if{|piece| piece.pos == position }}
 		@pieces.delete_if{ |piece| piece.pos == position }
@@ -38,7 +41,7 @@ class Board
     @cells.map!{|row| row.map{ |cell| cell = "   "} }
     @pieces.each{ |piece| @cells[piece.pos[0]][piece.pos[1]] = piece.sym }
   end
-
+	
   def display_board
     ct = 0
 		puts "\n"
@@ -64,7 +67,7 @@ class Board
 		opp_color = color == 'white' ? 'black' : 'white'
 		if capture == true
 			captured_piece = captured_piece(opp_color, input, destination)
-			remove_piece(destination, opp_color)
+			remove_piece(destination)
 		end
 		change_position(piece, destination)
 		valid_move = valid_notation?(input, opp_color) && !check?(color)

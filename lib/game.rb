@@ -69,8 +69,7 @@ class Game
     new_piece_pos = @board.destination(input[0...-2], opp_color)
     new_piece = Object.const_get(new_piece_str).new(color, new_piece_pos)
     pawn_pos = Pawn.origin(input[0...-2], new_piece_pos, color_pieces)
-    byebug
-    @board.remove_piece(pawn_pos, color)
+    @board.remove_piece(pawn_pos)
     @board.add_piece(color, new_piece)
   end
 
@@ -79,7 +78,7 @@ class Game
     old_pos, new_pos = extract_input(input, color)
     if Game.capture?(input)
       pos = board.enpassant?(new_pos, input, opp_color) ? Game.enpassant_captured_pos(opp_color, new_pos) : new_pos
-      @board.remove_piece(pos, opp_color)
+      @board.remove_piece(pos)
     end
       @board.update_position(new_pos, old_pos)
   end

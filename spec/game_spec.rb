@@ -12,8 +12,8 @@ describe Game do
     end
 
     it 'should update position of the white king for king side castle' do
-      game.board.remove_piece(Board.coordinates('f1'), 'white')
-      game.board.remove_piece(Board.coordinates('g1'), 'white')
+      game.board.remove_piece(Board.coordinates('f1'))
+      game.board.remove_piece(Board.coordinates('g1'))
       game.board.update_next_moves
       old_pos = Board.coordinates('e1')
       new_pos = Board.coordinates('g1')
@@ -21,9 +21,9 @@ describe Game do
     end
 
     it 'should update position of the white king for queen side castle' do
-      game.board.remove_piece(Board.coordinates('b1'), 'white')
-      game.board.remove_piece(Board.coordinates('c1'), 'white')
-      game.board.remove_piece(Board.coordinates('d1'), 'white')
+      game.board.remove_piece(Board.coordinates('b1'))
+      game.board.remove_piece(Board.coordinates('c1'))
+      game.board.remove_piece(Board.coordinates('d1'))
       game.board.update_next_moves
       old_pos = Board.coordinates('e1')
       new_pos = Board.coordinates('c1')
@@ -31,9 +31,9 @@ describe Game do
     end
 
     it 'should update position of the white rook for queen side castle' do
-      game.board.remove_piece(Board.coordinates('b1'), 'white')
-      game.board.remove_piece(Board.coordinates('c1'), 'white')
-      game.board.remove_piece(Board.coordinates('d1'), 'white')
+      game.board.remove_piece(Board.coordinates('b1'))
+      game.board.remove_piece(Board.coordinates('c1'))
+      game.board.remove_piece(Board.coordinates('d1'))
       game.board.update_next_moves
       old_pos = Board.coordinates('a1')
       new_pos = Board.coordinates('d1')
@@ -112,6 +112,18 @@ describe Game do
       expect(Game.piece_move?(input)).to eql(true)
     end
 
+  end
+
+  describe 'Game.promotion' do
+    it 'should return true when the input is a8=R' do
+      input = 'a8=R'
+      expect(Game.promotion?(input)).to eql(true)
+    end
+
+    it 'should return false when the input is a7=R' do
+      input = 'a7=R'
+      expect(Game.promotion?(input)).to eql(false)
+    end
   end
 
 
@@ -415,19 +427,19 @@ describe Game do
     before do
       game.board.pieces.each do |piece|
         if !piece.kind_of?(Pawn) && !piece.kind_of?(King)
-          game.board.remove_piece(piece.pos, piece.color)
+          game.board.remove_piece(piece.pos)
         end
       end
 
       game.board.white.values.flatten.each do |piece|
         if !piece.kind_of?(Pawn) && !piece.kind_of?(King)
-          game.board.remove_piece(piece.pos, piece.color)
+          game.board.remove_piece(piece.pos)
         end
       end
 
       game.board.black.values.flatten.each do |piece|
         if !piece.kind_of?(Pawn) && !piece.kind_of?(King)
-          game.board.remove_piece(piece.pos, piece.color)
+          game.board.remove_piece(piece.pos)
         end
       end
       game.board.update_cells
@@ -435,19 +447,26 @@ describe Game do
 
     context 'When color is white' do
       it 'should promote piece to queen' do
-        game.board.remove_piece(Board.coordinates('d7'), 'black')
+        game.board.remove_piece(Board.coordinates('d7'))
         game.board.white[:pawns][3].pos = Board.coordinates('d7')
         game.board.update_next_moves
         game.board.update_cells
         game.board.display_board
         input = 'd8=Q'
         color = 'white'
-        expect{game.promote_piece(input, color)}.to change{game.board.white[:pawns].length}.from(8).to(7)
+        expect{game.promote_piece(input, color)}.to change{game.board.white[:pawns].length}.by(-1)
       end
     end
     context 'When color is black' do
       it 'should promote piece to queen' do
-        
+        game.board.remove_piece(Board.coordinates('d2'))
+        game.board.black[:pawns][3].pos = Board.coordinates('d2')
+        game.board.update_next_moves
+        game.board.update_cells
+        game.board.display_board
+        input = 'd1=B'
+        color = 'black'
+        expect{game.promote_piece(input, color)}.to change{game.board.black[:bishops].length}.from(0).to(1)
       end
     end
   end
