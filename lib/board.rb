@@ -29,8 +29,8 @@ class Board
 	end
 
 	def remove_piece(position, color)
-		opp_color = color == 'black' ? @white : @black
-		opp_color.each{ |piece_type, pieces| pieces.delete_if{|piece| piece.pos == position }}
+		color_pieces = color == 'white' ? @white : @black
+		color_pieces.each{ |piece_type, pieces| pieces.delete_if{|piece| piece.pos == position }}
 		@pieces.delete_if{ |piece| piece.pos == position }
 	end
 
@@ -63,18 +63,15 @@ class Board
 		return false if piece && !piece.next_moves.include?(destination)
 		opp_color = color == 'white' ? 'black' : 'white'
 		if capture == true
-			piece_type = piece_type(opp_color, input, destination)
 			captured_piece = captured_piece(opp_color, input, destination)
-			remove_piece(destination, color)
+			remove_piece(destination, opp_color)
 		end
 		change_position(piece, destination)
 		valid_move = valid_notation?(input, opp_color) && !check?(color)
-		add_piece(destination, piece_type, opp_color, captured_piece) if capture
+		add_piece(opp_color, captured_piece) if capture
 		change_position(piece, origin)
 		valid_move
 	end
-
-	
 
 	def captured_piece(color, input, dest)
 		if input && enpassant?(dest, input, color)
@@ -85,16 +82,13 @@ class Board
 		end
 	end
 
-	def piece_type(color, input, dest)
-		pieces, offset_y = color == 'white' ? [@white, -1] : [@black, 1]
-		pieces.map do |piece_type, pieces|
-			if input && enpassant?(dest, input, color)
-				piece_pos = [dest[0] + offset_y, dest[1]]
-				piece_type if pieces.any?{|piece| piece.pos == piece_pos}
-			else
-				piece_type if pieces.any?{|piece| piece.pos == dest}
-			end
-		end.compact[0]
+	def piece_type(piece)
+		return :king if piece.kind_of?(King)
+		return :queen if piece.kind_of?(Queen)
+		return :rooks if piece.kind_of?(Rook)
+		return :bishops if piece.kind_of?(Bishop)
+		return :knights if piece.kind_of?(Knight)
+		return :pawns if piece.kind_of?(Pawn)
 	end
 
 	def valid_notation?(input, opp_color)
@@ -106,9 +100,9 @@ class Board
 		return true
 	end
 
-	def add_piece(position, piece_type, color, piece)
+	def add_piece(color, piece)
 		pieces = color == 'white' ? @white : @black
-		pieces[piece_type].push(piece)
+		pieces[piece_type(piece)].push(piece)
 		@pieces.push(piece)
 	end
 
@@ -179,8 +173,18 @@ class Board
 		coordinates
   end
 
+	def extract_destination(input)
+		if Game.promotion?(input)
+			return input[-4..-3]
+		elsif input[-1].match?(/[#+]/) 
+			return input[-3..-2]
+		else
+			return input[-2..-1]
+		end
+	end
+
 	def destination(input, opp_color)
-    destination = input[-1].match?(/[#|+]/) ? input[-3..-2] : input[-2..-1]
+		destination = extract_destination(input)
     return nil unless destination.match?(/[a-h][1-8]/)
     destination = Board.coordinates(destination)
     return nil if Game.capture?(input) && !color_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 

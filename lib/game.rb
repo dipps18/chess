@@ -51,20 +51,37 @@ class Game
   end
 
   def update(input, color)
-    opp_color = color == 'white' ? 'black' : 'white'
     board.update_next_moves
     if input == 'O-O-O' || input == 'O-O'
       castle(input, color)
+    elsif Game.promotion?(input)
+      promote_piece(input, color)
     else
-      origin, dest = extract_input(input, color)
-      if Game.capture?(input)
-        pos = board.enpassant?(dest, input, opp_color) ? Game.enpassant_captured_pos(opp_color, dest) : dest
-        @board.remove_piece(pos, color)
-      end
-        @board.update_position(dest, origin)
+      normal_move(input, color)
     end
     @board.update_cells
     update_screen
+  end
+
+  def promote_piece(input, color)
+    color_pieces, opp_color = color == 'white' ? [@board.white, 'black'] : [@board.black, 'white']
+    new_piece_str = piece(input[-1])
+    new_piece_pos = @board.destination(input[0...-2], opp_color)
+    new_piece = Object.const_get(new_piece_str).new(color, new_piece_pos)
+    pawn_pos = Pawn.origin(input[0...-2], new_piece_pos, color_pieces)
+    byebug
+    @board.remove_piece(pawn_pos, color)
+    @board.add_piece(color, new_piece)
+  end
+
+  def normal_move(input, color)
+    opp_color = color == 'white' ? 'black' : 'white'
+    old_pos, new_pos = extract_input(input, color)
+    if Game.capture?(input)
+      pos = board.enpassant?(new_pos, input, opp_color) ? Game.enpassant_captured_pos(opp_color, new_pos) : new_pos
+      @board.remove_piece(pos, opp_color)
+    end
+      @board.update_position(new_pos, old_pos)
   end
 
   def self.enpassant_captured_pos(color, capturing_pos) #returns the position of the captured pawn given the color and position of the capturing pawn
@@ -86,7 +103,7 @@ class Game
   end
 
   def extract_input(input, color)
-    piece = piece(input)
+    piece = piece(input[0])
     color_pieces, opp_color = color == 'white' ? [@board.white, 'black'] : [@board.black, 'white']
     destination = @board.destination(input, opp_color)
     origin = Object.const_get(piece).origin(input, destination, color_pieces)
@@ -95,14 +112,14 @@ class Game
 
   def valid_input(input, color)
     return true if Game.castle?(input) && can_castle?(input, color)
-    return false unless Game.pawn_move?(input) || Game.king_move?(input) || Game.piece_move?(input)
-    piece_string = piece(input)
+    return false unless Game.pawn_move?(input) || Game.king_move?(input) || Game.piece_move?(input) || Game.promotion?(input) 
+    piece_string = piece(input[0])
     color_pieces, opp_color = color == 'white' ? [@board.white, 'black'] : [@board.black, 'white']
-    dest = @board.destination(input, opp_color)
-    origin = Object.const_get(piece_string).origin(input,  dest, color_pieces)
-    piece = @board.pieces.select{|piece| piece.pos == origin}[0]
+    new_pos = @board.destination(input, opp_color)
+    old_pos = Object.const_get(piece_string).origin(input,  new_pos, color_pieces)
+    piece = @board.pieces.select{|piece| piece.pos == old_pos}[0]
     capture = Game.capture?(input)
-    origin && dest && @board.valid_move?(dest, origin, color, capture, piece, input)
+    old_pos && new_pos && @board.valid_move?(new_pos, old_pos, color, capture, piece, input)
   end
 
   def castle(input, color)
@@ -153,6 +170,12 @@ class Game
     input.match?('x')
   end
 
+  def self.promotion?(input)
+    capture_promotion =  Regexp.new(/^[a-h]x[a-h]8=[RQBN][+#]{,1}$/)
+    move_promotion =  Regexp.new(/^[a-h]8=[RQBN][+#]{,1}$/)
+    capture_promotion.match?(input) || move_promotion.match?(input)
+  end
+
   def self.pawn_move?(input)
     pawn_capture = Regexp.new(/^[a-h]x[a-h][1-8][+#]{,1}$/)
     pawn_move = Regexp.new(/^[a-h][1-8][+#]{,1}$/)
@@ -174,14 +197,14 @@ class Game
   end
 
   def piece(input)
-    return "Pawn" if input[0].match?(/[a-h]/)
-    return "Queen" if input[0] == 'Q'
-    return "King" if input[0] == 'K'
-    return "Rook" if input[0] == 'R'
-    return "Bishop" if input[0] == 'B'
-    return "Knight" if input[0] == 'N'
+    return "Pawn" if input.match?(/[a-h]/)
+    return "Queen" if input == 'Q'
+    return "King" if input == 'K'
+    return "Rook" if input == 'R'
+    return "Bishop" if input == 'B'
+    return "Knight" if input == 'N'
   end
 end
 
-game = Game.new
-game.play
+# game = Game.new
+# game.play

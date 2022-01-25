@@ -158,6 +158,7 @@ describe Game do
     it 'should reduce the size of pieces by 1' do
       allow(game).to receive(:gameover?).and_return(false, false, false, false, false, true)
       allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5+', 'Bd7', 'a3', 'Bxb5')
+      
       expect{game.play}.to change{game.board.white[:bishops].length}.from(2).to(1)
     end
 
@@ -409,4 +410,46 @@ describe Game do
       end
     end
   end
+
+  describe '#promote_piece' do
+    before do
+      game.board.pieces.each do |piece|
+        if !piece.kind_of?(Pawn) && !piece.kind_of?(King)
+          game.board.remove_piece(piece.pos, piece.color)
+        end
+      end
+
+      game.board.white.values.flatten.each do |piece|
+        if !piece.kind_of?(Pawn) && !piece.kind_of?(King)
+          game.board.remove_piece(piece.pos, piece.color)
+        end
+      end
+
+      game.board.black.values.flatten.each do |piece|
+        if !piece.kind_of?(Pawn) && !piece.kind_of?(King)
+          game.board.remove_piece(piece.pos, piece.color)
+        end
+      end
+      game.board.update_cells
+    end
+
+    context 'When color is white' do
+      it 'should promote piece to queen' do
+        game.board.remove_piece(Board.coordinates('d7'), 'black')
+        game.board.white[:pawns][3].pos = Board.coordinates('d7')
+        game.board.update_next_moves
+        game.board.update_cells
+        game.board.display_board
+        input = 'd8=Q'
+        color = 'white'
+        expect{game.promote_piece(input, color)}.to change{game.board.white[:pawns].length}.from(8).to(7)
+      end
+    end
+    context 'When color is black' do
+      it 'should promote piece to queen' do
+        
+      end
+    end
+  end
+
 end
