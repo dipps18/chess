@@ -85,6 +85,10 @@ class Board
 		end
 	end
 
+	def opp_color(color)
+		color == 'white' ? 'black' : 'white'
+	end
+
 	def piece_type(piece)
 		return :king if piece.kind_of?(King)
 		return :queen if piece.kind_of?(Queen)
@@ -94,12 +98,12 @@ class Board
 		return :pawns if piece.kind_of?(Pawn)
 	end
 
-	def valid_notation?(input, opp_color)
+	def valid_notation?(input, color)
 		return true unless input && input.match?(/[+#]/)
-		return false if input.include?('+') && !check?(opp_color)
-		return false if !input.include?('+') && check?(opp_color)
-		return false if input.include?('#') && !checkmate?(opp_color)
-		return false if !input.include?('#') && checkmate?(opp_color)
+		return false if input.include?('+') && !check?(color)
+		return false if !input.include?('+') && check?(color)
+		return false if input.include?('#') && !checkmate?(color)
+		return false if !input.include?('#') && checkmate?(color)
 		return true
 	end
 

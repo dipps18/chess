@@ -5,7 +5,7 @@ describe Bishop do
     subject(:board) {Board.new}
     context 'When valid input is given' do
       it 'should return [7, 2]' do
-        board.remove_piece([6, 3], 'white')
+        board.remove_piece([6, 3])
         board.update_next_moves
         input = 'Bh6'
         destination = [2, 7]

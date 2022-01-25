@@ -17,7 +17,7 @@ class Game
       update(input, color)
       id = update_id(id)
       color = id == 0 ? 'white' : 'black'
-      resest_enpassant(color)
+      reset_enpassant(color)
       break if gameover?(color)
     end
     puts result
@@ -27,7 +27,7 @@ class Game
     (id + 1) % 2
   end
 
-  def resest_enpassant(color) #responsible for resetting the status of enpassant for pawns
+  def reset_enpassant(color) #responsible for resetting the status of enpassant for pawns
     @board.black[:pawns]
     if color == 'white'
       @board.white[:pawns].each{ |pawn| pawn.enpossible = false } 

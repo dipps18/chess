@@ -206,7 +206,7 @@ describe Board do
       end
     end
   end
-
+  
   describe '#check?' do
     context 'When black king is in check' do
       it 'should return true when bishop targets king' do
