@@ -30,7 +30,7 @@ describe Bishop do
           pieces = board.white
           expect(Bishop.origin(input, destination, pieces)).to eql(Board.coordinates('d3'))
         end
-      end
+      en5d
 
       context 'When 2 bishops are in the same column(file)' do
         before do
