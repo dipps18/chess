@@ -2,10 +2,11 @@ require 'byebug'
 require_relative '../lib/board'
 
 class Game
-  attr_reader :board
+  attr_reader :board, :gameover
 
   def initialize
     @board = Board.new
+    @gameover = false
   end
 
   def play
@@ -14,13 +15,14 @@ class Game
     loop do
       puts "Player #{id + 1}, make your move"
       input = input(color)
-      update(input, color)
+      update(input, color) unless resign?(input)
       id = update_id(id)
+      break if input.match?(/#/)
       color = id == 0 ? 'white' : 'black'
+      break if stalemate?(color) || resign?(input)
       reset_enpassant(color)
-      break if gameover?(color)
     end
-    puts result
+    puts result(color)
   end
 
   def input(color)
@@ -32,7 +34,7 @@ class Game
   end
 
   def valid_input?(input, color)
-    return true if castle?(input) && can_castle?(input, color)
+    return true if resign?(input) || can_castle?(input, color)
     return false unless valid_move_input?(input)
     new_pos = destination(input, opp_color(color))
     old_pos = extract_position(input, new_pos, color)
@@ -48,29 +50,35 @@ class Game
     Object.const_get(piece_str).origin(input, new_pos, color_pieces)
   end
 
-  def valid_move_input?(input)
-    pawn_move?(input) || king_move?(input) || piece_move?(input) || promotion?(input)
-  end
-
   def valid_move?(new_pos, old_pos, color, capture = false, piece = nil, input = nil)
 		return false if piece && !piece.next_moves.include?(new_pos)
+    opp_color = opp_color(color)
 		if capture == true
-			captured_piece = captured_piece(opp_color(color), input, new_pos)
+			captured_piece = captured_piece(opp_color, input, new_pos)
 			remove_piece(new_pos)
 		end
 		change_position(piece, new_pos)
-		valid_move = valid_notation?(input, opp_color(color)) && !check?(color)
-		add_piece(opp_color(color), captured_piece) if capture
+		valid_move = valid_notation?(input, opp_color) && !check?(color)
+		add_piece(opp_color, captured_piece) if capture
 		change_position(piece, old_pos)
 		valid_move
 	end
 
+  def valid_move_input?(input)
+    pawn_move?(input) || king_move?(input) || piece_move?(input) || promotion?(input)
+  end
+
+  def resign?(input)
+    input == "resign"
+  end
+
   def extract_input(input, color)
     piece = piece(input[0])
-    color_pieces, opp_color = color == 'white' ? [@board.white, 'black'] : [@board.black, 'white']
-    destination = destination(input, opp_color)
-    origin = Object.const_get(piece).origin(input, destination, color_pieces)
-    return origin, destination
+    pieces = color_pieces(color)
+    opp_color = opp_color(color)
+    new_pos = destination(input, opp_color)
+    old_pos = Object.const_get(piece).origin(input, new_pos, pieces)
+    return old_pos, new_pos
   end
 
   def update(input, color)
@@ -89,25 +97,13 @@ class Game
   # responsible for resetting the status of enpassant for pawns
   def reset_enpassant(color)
     @board.black[:pawns]
-    if color == 'white'
-      @board.white[:pawns].each{ |pawn| pawn.enpossible = false } 
-    else
-      @board.black[:pawns].each{ |pawn| pawn.enpossible = false }
-    end
+    pawns = color == 'white' ? @board.white[:pawns] : @board.black[:pawns]
+    pawns.each{ |pawn| pawn.enpossible = false } 
   end
 
-  def result
-    if checkmate?('white')
-      return 'white wins the game by checkmate'
-    elsif checkmate?('black')
-      return 'black wins the game by checkmate'
-    else
-      return 'Game is a draw'
-    end
-  end
-
-  def gameover?(color)
-    checkmate?(color) || stalemate?
+  def result(color)
+    return "Draw" if stalemate?(color)
+    "#{color} wins!"
   end
 
   def update_id(id)
@@ -135,7 +131,7 @@ class Game
 	end
 
   def add_piece(color, piece)
-		pieces = color == 'white' ? @board.white : @board.black
+		pieces = color_pieces(color)
 		pieces[piece_type(piece)].push(piece)
 		@board.pieces.push(piece)
 	end
@@ -208,8 +204,9 @@ class Game
 		return true
 	end
 
-  def stalemate?
-		@board.pieces.all?{ |piece| piece.next_moves.empty? }
+  def stalemate?(color)
+    pieces = color_pieces(color).values.flatten
+		pieces.all?{ |piece| piece.next_moves.empty? }
 	end
 
   def check?(color)
@@ -323,16 +320,19 @@ class Game
   end
 
   def can_castle?(input, color)
+    return false unless castle?(input)
     opp_pieces = color_pieces(opp_color(color))
-    king = color == 'black' ? @board.black[:king][0] : @board.white[:king][0] 
+    squares_notation = castling_squares(input, color)
+    squares = Board.coordinates(squares_notation)
+    castling_conditions_met?(input, squares, color)
+  end
+
+  def castling_conditions_met?(input, squares, color)
+    opp_pieces = color_pieces(opp_color(color))
     rook = castling_rooks(input, color)
-    squares = castling_squares(input, color)
-    sq_coord = Board.coordinates(squares)
-    return false if check?(color)
-    return false if squares_check?(opp_pieces, sq_coord)
-    return false if rook.moved == true || king.moved == true
-    return false unless board.squares_empty?(sq_coord)
-    return true
+    king = color == 'black' ? @board.black[:king][0] : @board.white[:king][0] 
+    !check?(color) && !squares_check?(opp_pieces, squares) &&
+    !rook.moved && !king.moved && board.squares_empty?(squares)
   end
 
   def capture?(input)
@@ -376,5 +376,5 @@ class Game
   end
 end
 
-game = Game.new
-game.play
+# game = Game.new
+# game.play
