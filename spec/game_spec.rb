@@ -207,6 +207,8 @@ describe Game do
       allow(game).to receive(:input).and_return('e4', 'd5', 'Bb5+', 'Bd7', 'a4', 'Bxb5', 'resign')
       game.play
     end
+
+    
   end
 
   describe '#destination' do
@@ -298,6 +300,20 @@ describe Game do
         game.board.display_board
         piece = game.board.white[:pawns].select{ |pawn| pawn.pos == origin }
         expect(game.valid_move?(destination, origin, color, false, piece[0])).to eql(true)
+      end
+
+      it 'should return true when input is exd6(enpassant)' do
+        passing_pawn = game.board.white[:pawns][5]
+        input = 'exd6'
+        passing_pawn_old_pos = Board.coordinates('e5')
+        passing_pawn.pos = passing_pawn_old_pos
+        passing_pawn_new_pos = Board.coordinates('d6')
+        passed_pawn = game.board.black[:pawns][4]
+        passed_pawn.pos = Board.coordinates('d5')
+        passed_pawn.enpossible = true
+        game.update_next_moves
+        byebug
+        expect(game.valid_move?(passing_pawn_new_pos, passing_pawn_old_pos, 'white', true, passing_pawn, input)).to eql(true)
       end
     end
   end
