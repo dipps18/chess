@@ -1,4 +1,5 @@
 require 'byebug'
+require 'yaml'
 require_relative '../lib/board'
 
 class Game
@@ -9,20 +10,28 @@ class Game
     @gameover = false
   end
 
-  def play
-    id = 0
-    color = 'white'
+  def play(id_= 0)
+    id = id_
+    color = color(id)
+    input = ''
+    update_screen
     loop do
       puts "Player #{id + 1}, make your move"
       input = input(color)
-      update(input, color) unless resign?(input)
+      update(input, color) unless resign?(input) || save?(input) || load?(input)
+      break if input.match?(/#/) || save?(input) || load?(input)
       id = update_id(id)
-      break if input.match?(/#/)
-      color = id == 0 ? 'white' : 'black'
+      color = color(id)
       break if stalemate?(color) || resign?(input)
       reset_enpassant(color)
     end
-    puts result(color)
+    if save?(input)
+      save_game(id) 
+    elsif load?(input)
+      load_game
+    else
+      result(color)
+    end
   end
 
   def add_piece(color, piece)
@@ -30,6 +39,10 @@ class Game
 		pieces[piece_type(piece)].push(piece)
 		@board.pieces.push(piece)
 	end
+
+  def color(id)
+    id == 0 ? 'white' : 'black'
+  end
 
   def can_castle?(input, color)
     return false unless castle?(input)
@@ -109,7 +122,6 @@ class Game
   end
 
 	def checkmate?(color)
-    byebug
 		pieces = color_pieces(color)
 		pieces.values.flatten.none? do |piece|
 			piece.next_moves.any? do |move|
@@ -125,6 +137,12 @@ class Game
 		@board.update_all_moves
 	end
 
+  # def change_filename?
+  #   puts "Type 'y' or 'yes' if you wish to change the filename?"
+  #   ans = gets.chomp
+  #   ans.downcase.match?(/y|^yes$/) ? true : false
+  # end
+
   def color_pieces(color)
     color == 'white' ? @board.white : @board.black
   end
@@ -136,6 +154,10 @@ class Game
     return nil if capture?(input) && !@board.color_in_cell?(opp_color, destination) && !enpassant?(destination, input, opp_color) 
     return nil if !capture?(input) && !@board.squares_empty?(destination)
 		return destination
+  end
+
+  def display_saved_games
+    saved_game_list.each_with_index{|name, idx| puts "#{idx + 1}.#{name}"}
   end
 
   def extract_destination(input)
@@ -173,6 +195,10 @@ class Game
     Object.const_get(piece_str).origin(input, new_pos, color_pieces)
   end
 
+  def from_yaml(filename)
+    data = YAML.load(File.open(filename).read)
+  end
+
   def input(color)
     loop do
       input = gets.chomp
@@ -183,6 +209,33 @@ class Game
 
   def king_move?(input)
     /^Kx{,1}[a-h][1-8][+#]{,1}$/.match?(input)
+  end
+
+  def load?(input)
+    input.match?(/^load$/)
+  end
+
+  def load_game
+    display_saved_games
+    puts "Enter index of saved game"
+    index = gets.chomp.to_i
+    saved_games = saved_game_list
+    if index.between?(1,saved_games.length)
+      filename = saved_games[index - 1]
+      data = from_yaml(filename)
+      id = data[:id]
+      @board = data[:board]
+      play(id)
+    else
+      puts "incorrect index, enter again"
+      load_game
+    end
+  end
+
+  def load_game_not_found
+    puts "load game not found, do you want to load another game?"
+    ans = gets.chomp
+    yes?(input) ? load_game : start_new_game
   end
 
   def normal_move(input, color)
@@ -202,6 +255,16 @@ class Game
   def opp_color(color)
 		color == 'white' ? 'black' : 'white'
 	end
+
+  def overwrite?(id, filename)
+    puts "file with filename #{filename} already exists, do you wish to overwrite ?"
+    ans = gets.chomp
+    if yes?(ans)
+      to_yaml(id, filename)
+    else
+      save_game(id)
+    end
+  end
 
   # returns the position of the captured pawn given the color and position of the capturing pawn
   def passed_pawn_pos(color, capturing_pos)
@@ -286,7 +349,32 @@ class Game
 
   def result(color)
     return "Draw" if stalemate?(color)
-    "#{color} wins!"
+    puts "#{color} wins!"
+  end
+
+  def remove_ext(filename)
+    filename[0...filename.index('.')]
+  end
+
+  def save?(input)
+    input.downcase.match?(/^save$/)
+  end
+
+  def save_file(id, filename)
+    saved_games = saved_game_list
+    saved_games.include?(filename) ? overwrite?(id, filename) : to_yaml(id, filename)
+  end
+
+  def save_game(id)
+    puts 'Enter a name for your saved game'
+    filename = gets.chomp
+    filename = remove_ext(filename).concat('.yaml')
+    save_file(id, filename)
+    puts 'Game saved'
+  end
+
+  def saved_game_list
+    Dir.glob('*.yaml')
   end
 
   def stalemate?(color)
@@ -294,10 +382,20 @@ class Game
 		pieces.all?{ |piece| piece.next_moves.empty? }
 	end
 
+  def start_new_game
+    puts "Starting new game..."
+    game.play
+  end
+
   def squares_check?(pieces, coordinates)
     pieces.values.flatten.any? do |piece|
       (piece.next_moves - coordinates).length < piece.next_moves.length
     end
+  end
+
+  def to_yaml(id, filename)
+    file = File.open(filename, 'w')
+    file.puts YAML.dump({ board: @board, id: id })
   end
 
   def update(input, color)
@@ -339,7 +437,7 @@ class Game
   end
   
   def valid_input?(input, color)
-    return true if resign?(input) || can_castle?(input, color)
+    return true if resign?(input) || can_castle?(input, color) || save?(input) || load?(input)
     return false unless valid_move_input?(input)
     new_pos = destination(input, opp_color(color))
     old_pos = extract_position(input, new_pos, color)
@@ -369,13 +467,16 @@ class Game
 
   def valid_notation?(input, color)
 		return true unless input && input.match?(/[+#]/)
-    byebug if input.match?(/#/)
     return false if input.match?(/#/) && !checkmate?(color)
 		return false if !input.match?(/#/) && checkmate?(color)
 		return false if input.match?(/[#+]/) && !check?(color)
 		return false if !input.match?(/[#+]/) && check?(color)
 		return true
 	end
+
+  def yes?(input)
+    input.downcase.match(/y|^yes$|^yep$|^yeppers$|^yippity$/)
+  end
 end
 
 game = Game.new

@@ -31,6 +31,5 @@ class Queen
 		 				 board.bottom(@pos, @color), board.top(@pos, @color),
 						 board.diag_top_right(@pos, @color), board.diag_top_left(@pos, @color),
 		         board.diag_bottom_right(@pos, @color), board.diag_bottom_left(@pos, @color)].flatten(1)
-		moves	
 	end
 end

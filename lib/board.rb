@@ -25,8 +25,8 @@ class Board
       @cells[piece.pos[0]][piece.pos[1]] = piece.sym
     end
   end
-
-	def update_all_moves # updates next_moves for each piece, also includes invalid moves
+	# updates next_moves for each piece, also includes invalid moves
+	def update_all_moves
 		@pieces.each do |piece|
 			piece.next_moves = piece.all_moves(self)
 		end

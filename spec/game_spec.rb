@@ -312,7 +312,6 @@ describe Game do
         passed_pawn.pos = Board.coordinates('d5')
         passed_pawn.enpossible = true
         game.update_next_moves
-        byebug
         expect(game.valid_move?(passing_pawn_new_pos, passing_pawn_old_pos, 'white', true, passing_pawn, input)).to eql(true)
       end
     end

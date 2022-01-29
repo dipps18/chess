@@ -13,7 +13,9 @@ class King
 	def all_moves(board)
 		moves = []
 		increments = [[1,-1], [1, 1], [-1, -1],
-								  [1, 0], [-1, 0]].map{|increment_set| increment_set.permutation.to_a}.flatten(1)
+								  [1, 0], [-1, 0]].map do |increment_set| 
+										increment_set.permutation.to_a
+									end.flatten(1).uniq
 		increments.each do |increment|
 			next_move = [@pos[0] + increment[0], @pos[1] + increment[1]]
 			moves.push(next_move) unless board.out_of_bounds?(next_move) || board.color_in_cell?(@color, next_move)
