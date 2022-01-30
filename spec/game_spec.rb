@@ -131,8 +131,9 @@ describe Game do
     context 'When the input is right' do
         it 'should return input' do
         input = 'a4'
+        id = 0
         allow(game).to receive(:gets).and_return(input)
-        expect(game.input('white')).to eql(input)
+        expect(game.input(id)).to eql(input)
       end
     end
 

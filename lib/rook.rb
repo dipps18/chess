@@ -29,5 +29,4 @@ class Rook
 		end
 		rooks[0] ? rooks[0].pos : nil
   end
-
 end

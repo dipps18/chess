@@ -6,6 +6,7 @@ describe Pawn do
     context 'when color is black ' do
       subject(:pawn_moves) { described_class.new('black') }
       let(:board) { Board.new }
+      let(:game) { Game.new(board) }
 
       it 'should return [[2, 0], [3, 0]] when piece is at origin' do
         expect(pawn_moves.all_moves(board)).to eql([[2, 0], [3, 0]])
@@ -31,6 +32,7 @@ describe Pawn do
     context 'When color is white and position is [6, 0]' do
       subject(:pawn_moves) { described_class.new('white') }
       let(:board) { Board.new }
+      let(:game) { Game.new(board) }
       before do
         pawn_moves.instance_eval('@pos = [6, 0]')
       end
@@ -58,7 +60,7 @@ describe Pawn do
 
   describe '#origin' do
     let(:board) { Board.new }
-
+    let(:game) { Game.new(board) }
     context 'When origin is valid' do 
  
       it 'should return [2, 0] when a1 is played' do
@@ -73,7 +75,7 @@ describe Pawn do
         destination = Board.coordinates('b3')
         origin = Board.coordinates('a2')
         board.black[:pawns][0].pos = destination
-        board.update_next_moves
+        game.update_next_moves
         expect(Pawn.origin(input, destination, board.white)).to eql(origin)
       end
 
@@ -84,7 +86,7 @@ describe Pawn do
         board.black[:pawns][3].pos = Board.coordinates('d5')
         board.white[:pawns][4].pos = origin
         board.black[:pawns][3].enpossible = true
-        board.update_next_moves
+        game.update_next_moves
         expect(Pawn.origin(input, destination, board.white)).to eql(origin)
       end
     end

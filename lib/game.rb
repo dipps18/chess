@@ -5,33 +5,23 @@ require_relative '../lib/board'
 class Game
   attr_reader :board, :gameover
 
-  def initialize
-    @board = Board.new
+  def initialize(board = Board.new)
+    @board = board
     @gameover = false
   end
 
   def play(id_= 0)
-    id = id_
-    color = color(id)
+    id, color = [id_, color(id_)]
     input = ''
     update_screen
     loop do
-      puts "Player #{id + 1}, make your move"
-      input = input(color)
-      update(input, color) unless resign?(input) || save?(input) || load?(input)
-      break if input.match?(/#/) || save?(input) || load?(input)
-      id = update_id(id)
-      color = color(id)
-      break if stalemate?(color) || resign?(input)
+      input = input(id)
+      update(input, color) unless save?(input) || load?(input) || resign?(input)
+      break if gameover?(input, color) 
+      id, color = update_id_and_color(id)
       reset_enpassant(color)
     end
-    if save?(input)
-      save_game(id) 
-    elsif load?(input)
-      load_game
-    else
-      result(color)
-    end
+    result(input, id)
   end
 
   def add_piece(color, piece)
@@ -131,11 +121,19 @@ class Game
 		end
 	end
 
+  def checkmate_input?(input)
+    input.match?(/#/)
+  end
+
   def change_position(piece, position)
 		piece.pos = position
 		@board.update_cells
 		@board.update_all_moves
 	end
+
+  def checkmate_or_check?(input)
+    input[-1].match?(/[#+]/) 
+  end
 
   # def change_filename?
   #   puts "Type 'y' or 'yes' if you wish to change the filename?"
@@ -163,7 +161,7 @@ class Game
   def extract_destination(input)
 		if promotion?(input)
 			return input[-4..-3]
-		elsif input[-1].match?(/[#+]/) 
+		elsif checkmate_or_check?(input)
 			return input[-3..-2]
 		else
 			return input[-2..-1]
@@ -182,11 +180,8 @@ class Game
   def enpassant?(dest, input, opp_color)
     passed_pawn_pos = passed_pawn_pos(opp_color, dest)
     pawn_sym = opp_color == 'white' ? " \u265F " : " \u2659 "
-    pawn_capture = Regexp.new(/^[a-h]x[a-h][1-8][+#]{,1}$/)
-    if pawn_capture.match?(input)
-      return piece_in_cell?(pawn_sym, passed_pawn_pos)
-    end
-    false
+    piece_found = piece_in_cell?(pawn_sym, passed_pawn_pos)
+    pawn_capture?(input) ? piece_found : false 
 	end
 
   def extract_position(input, new_pos, color)
@@ -197,12 +192,20 @@ class Game
 
   def from_yaml(filename)
     data = YAML.load(File.open(filename).read)
+    [data[:id], data[:board]]
   end
 
-  def input(color)
+  def gameover?(input, color)
+    opp_color = opp_color(color)
+    resign?(input) || checkmate?(opp_color) ||
+    stalemate?(opp_color) || save?(input) || load?(input)
+  end
+
+  def input(id)
+    puts "Player #{id + 1}, make your move"
     loop do
       input = gets.chomp
-      return input if valid_input?(input, color)
+      return input if valid_input?(input, color(id))
       puts "Wrong input, try again"
     end
   end
@@ -220,22 +223,14 @@ class Game
     puts "Enter index of saved game"
     index = gets.chomp.to_i
     saved_games = saved_game_list
-    if index.between?(1,saved_games.length)
+    if index.between?(1, saved_games.length)
       filename = saved_games[index - 1]
-      data = from_yaml(filename)
-      id = data[:id]
-      @board = data[:board]
+      id, @board = from_yaml(filename)
       play(id)
     else
       puts "incorrect index, enter again"
       load_game
     end
-  end
-
-  def load_game_not_found
-    puts "load game not found, do you want to load another game?"
-    ans = gets.chomp
-    yes?(input) ? load_game : start_new_game
   end
 
   def normal_move(input, color)
@@ -298,9 +293,12 @@ class Game
   end
 
   def pawn_move?(input)
-    pawn_capture = Regexp.new(/^[a-h]x[a-h][1-8][+#]{,1}$/)
     pawn_move = Regexp.new(/^[a-h][1-8][+#]{,1}$/)
-    pawn_capture.match?(input) || pawn_move.match?(input)
+    pawn_capture?(input) || pawn_move.match?(input)
+  end
+
+  def pawn_capture?(input)
+    input.match?(/^[a-h]x[a-h][1-8][+#]{,1}$/)
   end
   
   # checks if the piece intended to move is a queen, bishop, rook or knight
@@ -347,9 +345,18 @@ class Game
     pawns.each{ |pawn| pawn.enpossible = false } 
   end
 
-  def result(color)
-    return "Draw" if stalemate?(color)
-    puts "#{color} wins!"
+  def result(input, id)
+    if save?(input)
+      puts "Saving game..."
+      save_game(id)
+    elsif load?(input)
+      puts "loading game..."
+      load_game
+    elsif stalemate?(color(id))
+      puts "Draw by stalemate"
+    else
+      puts "#{color(id)} wins!"
+    end
   end
 
   def remove_ext(filename)
@@ -382,11 +389,6 @@ class Game
 		pieces.all?{ |piece| piece.next_moves.empty? }
 	end
 
-  def start_new_game
-    puts "Starting new game..."
-    game.play
-  end
-
   def squares_check?(pieces, coordinates)
     pieces.values.flatten.any? do |piece|
       (piece.next_moves - coordinates).length < piece.next_moves.length
@@ -406,13 +408,13 @@ class Game
     else
       normal_move(input, color)
     end
-    update_next_moves
     @board.update_cells
+    update_next_moves
     update_screen
   end
 
-  def update_id(id)
-    (id + 1) % 2
+  def update_id_and_color(id)
+    return (id + 1) % 2, color((id + 1) % 2)
   end
 
   # updates next moves for each piece with only valid moves
