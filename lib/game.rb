@@ -3,11 +3,10 @@ require 'yaml'
 require_relative '../lib/board'
 
 class Game
-  attr_reader :board, :gameover
+  attr_reader :board
 
   def initialize(board = Board.new)
     @board = board
-    @gameover = false
   end
 
   def play(id_= 0)
@@ -135,14 +134,12 @@ class Game
     input[-1].match?(/[#+]/) 
   end
 
-  # def change_filename?
-  #   puts "Type 'y' or 'yes' if you wish to change the filename?"
-  #   ans = gets.chomp
-  #   ans.downcase.match?(/y|^yes$/) ? true : false
-  # end
-
   def color_pieces(color)
     color == 'white' ? @board.white : @board.black
+  end
+
+  def declare_winner(color)
+    puts "#{color} wins!"
   end
 
   def destination(input, opp_color)
@@ -219,6 +216,7 @@ class Game
   end
 
   def load_game
+    puts "loading game..."
     display_saved_games
     puts "Enter index of saved game"
     index = gets.chomp.to_i
@@ -252,7 +250,7 @@ class Game
 	end
 
   def overwrite?(id, filename)
-    puts "file with filename #{filename} already exists, do you wish to overwrite ?"
+    puts "#{filename} already exists, do you wish to overwrite ?"
     ans = gets.chomp
     if yes?(ans)
       to_yaml(id, filename)
@@ -261,7 +259,8 @@ class Game
     end
   end
 
-  # returns the position of the captured pawn given the color and position of the capturing pawn
+  # returns the position of the captured pawn given
+  # the color and position of the capturing pawn
   def passed_pawn_pos(color, capturing_pos)
     offset_y = color == 'white' ? -1 : 1
     [capturing_pos[0] + offset_y, capturing_pos[1]]
@@ -341,21 +340,25 @@ class Game
 
   # responsible for resetting the status of enpassant for pawns
   def reset_enpassant(color)
-    pawns = color == 'white' ? @board.white[:pawns] : @board.black[:pawns]
+    if color == 'white'
+      pawns = @board.white[:pawns]
+    else
+      pawns = @board.black[:pawns]
+    end
     pawns.each{ |pawn| pawn.enpossible = false } 
   end
 
   def result(input, id)
     if save?(input)
-      puts "Saving game..."
       save_game(id)
     elsif load?(input)
-      puts "loading game..."
       load_game
     elsif stalemate?(color(id))
       puts "Draw by stalemate"
+    elsif resign?(input)
+      declare_winner(opp_color(color(id)))
     else
-      puts "#{color(id)} wins!"
+      declare_winner(color(id))
     end
   end
 
@@ -369,10 +372,15 @@ class Game
 
   def save_file(id, filename)
     saved_games = saved_game_list
-    saved_games.include?(filename) ? overwrite?(id, filename) : to_yaml(id, filename)
+    if saved_games.include?(filename)
+      overwrite?(id, filename)
+    else
+      to_yaml(id, filename)
+    end
   end
 
   def save_game(id)
+    puts "Saving game..."
     puts 'Enter a name for your saved game'
     filename = gets.chomp
     filename = remove_ext(filename).concat('.yaml')
@@ -439,7 +447,8 @@ class Game
   end
   
   def valid_input?(input, color)
-    return true if resign?(input) || can_castle?(input, color) || save?(input) || load?(input)
+    return true if resign?(input) || save?(input) ||
+                   can_castle?(input, color) || load?(input)
     return false unless valid_move_input?(input)
     new_pos = destination(input, opp_color(color))
     old_pos = extract_position(input, new_pos, color)
@@ -464,7 +473,8 @@ class Game
 	end
 
   def valid_move_input?(input)
-    pawn_move?(input) || king_move?(input) || piece_move?(input) || promotion?(input)
+    pawn_move?(input) || king_move?(input) ||
+    piece_move?(input) || promotion?(input)
   end
 
   def valid_notation?(input, color)
