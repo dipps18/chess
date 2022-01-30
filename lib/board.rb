@@ -42,17 +42,28 @@ class Board
 	end
 
   def display_board
-    ct = 0
-		puts "\n"
+    square = 0
+		row_no = 8
+		print_column
     @cells.each do |row|
+			print "#{row_no}  "
       row.each do |piece|
-        print ct % 2 == 1 ? ANSI::Code.rgb(0, 0, 0, true){piece} : ANSI::Code.rgb(250, 50, 50, true){piece}
-        ct += 1
+				print_piece_and_square(square, piece)
+				square += 1
       end
-      print "\n"
-      ct += 1
+			print "\n"
+			row_no -= 1
+      square += 1
     end
   end
+
+	def print_piece_and_square(square, piece)
+		if square % 2 == 0
+			print ANSI::Code.rgb(0, 0, 0, true){piece}
+		else
+			print ANSI::Code.rgb(250, 50, 50, true){piece}
+		end
+	end
 
 	def out_of_bounds?(next_pos)
 		next_pos[0] > 7 || next_pos[1] > 7 || next_pos[0] < 0 || next_pos[1] < 0		
@@ -99,6 +110,11 @@ class Board
 		pieces.include?(@cells[pos[0]][pos[1]])
 	end
 
+	def print_column
+		print "   "
+		('a'..'h').each{ |col| print " #{col} "}
+		print "\n"
+	end
 
 	def squares_empty?(positions)
 		return true if positions == nil

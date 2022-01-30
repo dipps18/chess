@@ -202,7 +202,7 @@ class Game
   end
 
   def input(id)
-    puts "Player #{id + 1}, make your move"
+    puts "   Player #{id + 1}, make your move"
     loop do
       input = gets.chomp
       return input if valid_input?(input, color(id))
@@ -434,7 +434,7 @@ class Game
 	end
   
   def update_screen
-    # system "clear"
+    system "clear"
     board.display_board
   end
   
