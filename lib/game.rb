@@ -138,8 +138,8 @@ class Game
     color == 'white' ? @board.white : @board.black
   end
 
-  def declare_winner(color)
-    puts "#{color} wins!"
+  def declare_winner(id)
+    puts "Player #{id} wins!"
   end
 
   def destination(input, opp_color)
@@ -366,9 +366,9 @@ class Game
     elsif stalemate?(color(id))
       puts "Draw by stalemate"
     elsif resign?(input)
-      declare_winner(opp_color(color(id)))
+      declare_winner(update_id(id) + 1)
     else
-      declare_winner(color(id))
+      declare_winner(id + 1)
     end
   end
 
@@ -430,9 +430,15 @@ class Game
     update_next_moves
     update_screen
   end
-
+	
+	def update_id(id)
+		(id + 1) % 2
+	end
+	
   def update_id_and_color(id)
-    return (id + 1) % 2, color((id + 1) % 2)
+		new_id = update_id(id)
+		new_color = color(new_id)
+    return new_id, new_color
   end
 
   # updates next moves for each piece with only valid moves
