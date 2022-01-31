@@ -215,19 +215,23 @@ class Game
     input.match?(/^load$/)
   end
 
-  def load_game
+  def load_game(id)
     puts "loading game..."
     display_saved_games
-    puts "Enter index of saved game"
-    index = gets.chomp.to_i
     saved_games = saved_game_list
-    if index.between?(1, saved_games.length)
-      filename = saved_games[index - 1]
-      id, @board = from_yaml(filename)
-      play(id)
+    if saved_game_list.length >= 1
+      puts "Enter index of saved game"
+      index = gets.chomp.to_i
+      if index.between?(1, saved_games.length)
+        filename = saved_games[index - 1]
+        id, @board = from_yaml(filename)
+        play(id)
+      else
+        puts "incorrect index, enter again"
+        load_game
+      end
     else
-      puts "incorrect index, enter again"
-      load_game
+      no_load_game_found(id)
     end
   end
 
@@ -244,6 +248,12 @@ class Game
     end
     update_position(new_pos, old_pos)
   end
+
+  def no_load_game_found(id)
+    puts "No load game found, starting new game..."
+    play(id)
+  end
+
 
   def opp_color(color)
 		color == 'white' ? 'black' : 'white'

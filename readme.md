@@ -1,6 +1,6 @@
 ## Chess
 
-This is a 2 player chess command line game. You can play the game [here]()
+This is a 2 player chess command line game. You can play the game [here](https://replit.com/@DipankarPurecha/chess-2?v=1)
 
 ### How to play?
 
