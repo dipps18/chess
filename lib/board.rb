@@ -5,95 +5,97 @@ require_relative 'knight.rb'
 require_relative 'king.rb'
 require_relative 'queen.rb'
 require_relative 'rook.rb'
+
 class Board
-	attr_reader :white, :black, :cells
-	attr_accessor :pieces
+  attr_reader :white, :black, :cells
+  attr_accessor :pieces
   def initialize
-		@WHITE_SYMBOLS = [" \u265F ", " \u265E ", " \u265B ", " \u265A ", " \u265C ", " \u265D "]
-		@BLACK_SYMBOLS = [" \u2659 ", " \u2658 ", " \u2655 ", " \u2654 ", " \u2656 ", " \u2657 "]
+    @WHITE_SYMBOLS = [" \u265F ", " \u265E ", " \u265B ", " \u265A ", " \u265C ", " \u265D "]
+    @BLACK_SYMBOLS = [" \u2659 ", " \u2658 ", " \u2655 ", " \u2654 ", " \u2656 ", " \u2657 "]
     @white = create_pieces('white')
     @black = create_pieces('black')
-		@pieces = [@white.values, @black.values].flatten
-		@cells = Array.new(8){ Array.new(8) }
-		update_cells
-		update_all_moves
+    @pieces = [@white.values, @black.values].flatten
+    @cells = Array.new(8){ Array.new(8) }
+    update_cells
+    update_all_moves
   end
 
-	def update_cells
+  def update_cells
     @cells.map!{|row| row.map{ |cell| cell = "   "} }
     @pieces.each do |piece|
       @cells[piece.pos[0]][piece.pos[1]] = piece.sym
     end
   end
-	# updates next_moves for each piece, also includes invalid moves
-	def update_all_moves
-		@pieces.each do |piece|
-			piece.next_moves = piece.all_moves(self)
-		end
-	end
+	
+  # updates next_moves for each piece, also includes invalid moves
+  def update_all_moves
+    @pieces.each do |piece|
+      piece.next_moves = piece.all_moves(self)
+    end
+  end
 
-	def create_pieces(color)
-		{:pawns => Array.new(8){ Pawn.new(color) },
+  def create_pieces(color)
+    {:pawns => Array.new(8){ Pawn.new(color) },
      :bishops => Array.new(2){ Bishop.new(color) },
      :knights => Array.new(2){ Knight.new(color) },
      :rooks => Array.new(2){ Rook.new(color) },
      :queen => Array.new(1){ Queen.new(color) },
-		 :king => Array.new(1){ King.new(color) } }
-	end
+     :king => Array.new(1){ King.new(color) } }
+  end
 
   def display_board
     square = 0
-		row_no = 8
-		print_column
+    row_no = 8
+    print_column
     @cells.each do |row|
-			print "#{row_no}  "
+      print "#{row_no}  "
       row.each do |piece|
-				print_piece_and_square(square, piece)
-				square += 1
+        print_piece_and_square(square, piece)
+        square += 1
       end
-			print "\n"
-			row_no -= 1
+      print "\n"
+      row_no -= 1
       square += 1
     end
   end
 
-	def print_piece_and_square(square, piece)
-		if square % 2 == 0
-			print ANSI::Code.rgb(0, 0, 0, true){piece}
-		else
-			print ANSI::Code.rgb(250, 50, 50, true){piece}
-		end
-	end
-
-	def out_of_bounds?(next_pos)
-		next_pos[0] > 7 || next_pos[1] > 7 || next_pos[0] < 0 || next_pos[1] < 0		
-	end
-
-	def self.column(input)
-		input.ord - 'a'.ord
-	end
-	
-	def self.row(input)
-		(input.to_i - 8).abs
-	end
-
-	def self.coordinates(positions)
-		coordinates = []
-		if positions.kind_of?(Array)
-			positions.each do |position|
-				coordinates.push([Board.row(position[1]), Board.column(position[0])])
-			end
-		else
-    	coordinates = [Board.row(positions[1]), Board.column(positions[0])]
-		end
-		coordinates
+  def print_piece_and_square(square, piece)
+    if square % 2 == 0
+      print ANSI::Code.rgb(0, 0, 0, true){piece}
+    else
+      print ANSI::Code.rgb(250, 50, 50, true){piece}
+    end
   end
+
+  def out_of_bounds?(next_pos)
+    next_pos[0] > 7 || next_pos[1] > 7 || next_pos[0] < 0 || next_pos[1] < 0		
+  end
+
+  def self.column(input)
+    input.ord - 'a'.ord
+  end
+	
+  def self.row(input)
+    (input.to_i - 8).abs
+  end
+
+  def self.coordinates(positions)
+    coordinates = []
+    if positions.kind_of?(Array)
+      positions.each do |position|
+        coordinates.push([Board.row(position[1]), Board.column(position[0])])
+      end
+    else
+      coordinates = [Board.row(positions[1]), Board.column(positions[0])]
+    end
+      coordinates
+	end
 
 	def valid_cells(next_pos, color, offset, index = nil, cur_pos = nil)
 		cells = []
 		loop do
 			break if out_of_bounds?(next_pos) || color_in_cell?(color, next_pos) || !squares_empty?(cur_pos)
-      cells.push(next_pos.dup)
+    	cells.push(next_pos.dup)
 			cur_pos = cells[-1]
 			if index == nil
 				next_pos = [cur_pos[0] + offset[0], cur_pos[1] + offset[1]]
